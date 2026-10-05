@@ -1,7 +1,7 @@
 {
   "name": "nudge-buddy-desktop",
   "productName": "Nudge Buddy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Playful reminders & alarms delivered by an animated buddy.",
   "author": "TartanHQ",
   "main": "main.js",
@@ -65,8 +65,14 @@
     "publish": [
       {
         "provider": "github",
+        "owner": "rohitsuryawanshi2065-eng",
+        "repo": "YourBuddy",
         "releaseType": "release"
       }
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rohitsuryawanshi2065-eng/YourBuddy.git"
   }
 }

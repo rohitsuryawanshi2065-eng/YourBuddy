@@ -9,7 +9,9 @@ permissions:
   contents: write
 jobs:
   build:
+    # each OS builds independently, so one failure does not cancel the other
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
@@ -25,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      - run: npm install --no-audit --no-fund
       - run: npm run sync
       - name: Build & publish installer
         run: npx electron-builder ${{ matrix.target }} --publish always
