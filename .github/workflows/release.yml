@@ -1,0 +1,35 @@
+# Builds the desktop app on real Mac + Windows machines and attaches the installers
+# to a GitHub Release. Trigger: push a tag like v1.0.0  (git tag v1.0.0 && git push --tags)
+name: Release desktop app
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: --mac
+          - os: windows-latest
+            target: --win
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run sync
+      - name: Build & publish installer
+        run: npx electron-builder ${{ matrix.target }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Unsigned builds by default. Add signing secrets later (see README):
+          CSC_IDENTITY_AUTO_DISCOVERY: false

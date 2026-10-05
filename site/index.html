@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nudge Buddy — a tiny coworker that lives on your Dock</title>
+<meta name="description" content="Nudge Buddy lives on your Mac Dock or Windows taskbar, wanders around while you work, and runs across your screen when it's time to drink water, stretch or take a break. Free for Mac & Windows.">
+<meta property="og:title" content="Nudge Buddy — a tiny coworker that lives on your Dock">
+<meta property="og:description" content="Reminders you can't ignore: an animated buddy that runs across your screen when it's time to hydrate, stretch and breathe.">
+<meta property="og:image" content="/assets/og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ff6b3d">
+<link rel="icon" href="/assets/icon32.png">
+<link rel="apple-touch-icon" href="/assets/icon512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="nav">
+  <a class="logo" href="/"><img src="/assets/icon128.png" alt="" width="34" height="34"><span>Nudge Buddy</span></a>
+  <nav>
+    <a href="#how">How it works</a>
+    <a href="#buddies">Buddies</a>
+    <a href="#features">Features</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+  <a class="btn btn-sm btn-dark" href="#download">Download</a>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot"></span> Free for Mac &amp; Windows</p>
+      <h1>Your Dock just got a <span class="squiggle">tiny coworker.</span></h1>
+      <p class="lede">Nudge Buddy lives on top of your Dock, wanders around while you work, and <b>sprints across your screen</b> when it’s time to drink water, stretch, or look away. Say <b>YES</b> and it throws a party. Say <b>“later”</b> and it counts down, moonwalks off, and comes back right on time.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary dl" data-os="mac" href="#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5V15H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 18h20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg> Download for Mac</a>
+        <a class="btn btn-ghost dl" data-os="win" href="#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8-1v7.5H3zM13 3.8l8-1.3v9H13zM3 13h8v7.5l-8-1.1zM13 13h8v8.5l-8-1.3z" fill="currentColor"/></svg> Download for Windows</a>
+      </div>
+      <p class="fine">macOS 11+ · Windows 10+ · No account · Nothing leaves your computer</p>
+    </div>
+
+    <div class="hero-stage">
+      <div class="screen" id="screen">
+        <div class="wall"><i></i><i></i><i></i></div>
+        <div class="menubar"><span class="mb-dot"></span><span>Finder</span><span>File</span><span>Edit</span><span>View</span><span class="mb-right" id="clock">9:41</span></div>
+        <div class="win-mock">
+          <div class="wm-bar"><i></i><i></i><i></i><span>focus.md</span></div>
+          <div class="wm-body"><b>Deep work 🧠</b><span class="ln w80"></span><span class="ln w60"></span><span class="ln w90"></span><span class="ln w40"></span></div>
+        </div>
+        <div class="dock" id="dock"></div>
+        <div class="pet" id="pet"><div class="pet-flip"></div><div class="pet-bubble" id="petBubble"></div></div>
+      </div>
+      <div class="caption-card">
+        <span><span id="petName">Arjun</span>, on a (pretend) Mac Dock</span>
+        <button class="link-btn" id="tryHero">Make him nudge me ↗</button>
+      </div>
+      <div class="sticker s1">drag me!</div>
+      <div class="sticker s2">💧 every 45 min</div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true"><div class="track">
+    <span>💧 Drink water</span><span>🧘 Stretch</span><span>👀 20-20-20 eye break</span><span>🪑 Sit up straight</span><span>🚶 Take a walk</span><span>🍅 Pomodoro done</span><span>💊 Vitamins</span><span>📞 Meeting in 10</span><span>😮‍💨 Breathe</span>
+    <span>💧 Drink water</span><span>🧘 Stretch</span><span>👀 20-20-20 eye break</span><span>🪑 Sit up straight</span><span>🚶 Take a walk</span><span>🍅 Pomodoro done</span><span>💊 Vitamins</span><span>📞 Meeting in 10</span><span>😮‍💨 Breathe</span>
+  </div></div>
+
+  <!-- PROBLEM -->
+  <section class="versus">
+    <h2>Notifications get swiped.<br><span class="hl">Buddies get answered.</span></h2>
+    <div class="vs-grid">
+      <div class="vs-card boring">
+        <div class="vs-label">A normal reminder</div>
+        <div class="toast-mock"><img src="/assets/icon32.png" alt=""><div><b>Reminder</b><span>Drink water</span></div><em>now</em></div>
+        <p>Slides in. Gets ignored. Slides out. You’ve been dehydrated since lunch.</p>
+      </div>
+      <div class="vs-card fun">
+        <div class="vs-label">A Nudge Buddy reminder</div>
+        <div class="vs-stage" id="vsStage"></div>
+        <p>Runs onto your screen, asks politely, gets impatient if you ignore it, and celebrates when you actually do the thing.</p>
+        <button class="btn btn-primary btn-sm" id="tryVs">Try it on this page</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section id="how" class="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <article class="step">
+        <div class="num">1</div>
+        <div class="step-art"><div class="mini-card"><span>💧</span><div><b>Hydrate</b><small>every 45 min · 44:58</small></div><i class="sw"></i></div></div>
+        <h3>Set a nudge in one tap</h3>
+        <p>Quick starts for water, stretching, eye breaks, posture and Pomodoro, or make your own timer, repeating reminder, or real alarm for chosen days.</p>
+      </article>
+      <article class="step">
+        <div class="num">2</div>
+        <div class="step-art run-art"><div class="mini-buddy" data-buddy="mochi" data-pose="running"></div></div>
+        <h3>Your buddy comes running</h3>
+        <p>When time’s up it sprints out from the Dock over <i>whatever</i> app you’re in: your editor, Slack, a spreadsheet, even full-screen.</p>
+      </article>
+      <article class="step">
+        <div class="num">3</div>
+        <div class="step-art two">
+          <div class="choice yes"><span>YES</span><small>party mode 🎉</small></div>
+          <div class="choice later"><span>Later</span><small>3·2·1… poof</small></div>
+        </div>
+        <h3>Yes = party. Later = poof.</h3>
+        <p>Say yes for zoomies, a rocket launch, a clone army or a disco. Snooze and it counts down, moonwalks away, and returns exactly on time.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- BUDDIES -->
+  <section id="buddies" class="buddies">
+    <h2>Pick your buddy</h2>
+    <p class="sub">Six hand-drawn characters, fully animated: they run, blink, wave, dance and fall asleep. Click one to put it on the Dock above.</p>
+    <div class="buddy-grid" id="buddyGrid"></div>
+    <div class="upload-card">
+      <div class="upload-stage" id="uploadStage"></div>
+      <div>
+        <h3>Or… make <em>you</em> the buddy.</h3>
+        <p>Upload a selfie, your dog, or a transparent PNG. Choose head-on-body, sticker or cutout style, and your buddy gets your face. Try it here; the photo never leaves your browser.</p>
+        <label class="btn btn-dark btn-sm">📸 Try with a photo<input type="file" id="upload" accept="image/*" hidden></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="features">
+    <h2>Small buddy. Lots of tricks.</h2>
+    <div class="feat-grid">
+      <div class="feat"><span>🏠</span><h3>Lives on your Dock</h3><p>Walks along the top of your Dock or taskbar, naps when you’re away, and waves when your cursor drops by.</p></div>
+      <div class="feat"><span>🫳</span><h3>Pick it up</h3><p>Drag your buddy anywhere. It dangles, protests, and drops back down with a satisfying <i>oof</i>.</p></div>
+      <div class="feat"><span>⏰</span><h3>Real alarms</h3><p>Timers, repeating reminders and wake-up-style alarms on chosen days, with six ringtones.</p></div>
+      <div class="feat"><span>😤</span><h3>Gets impatient</h3><p>Ignore it and it taps its foot. Ignore it longer and it shouts your name. Lovingly.</p></div>
+      <div class="feat"><span>😜</span><h3>Mischief mode</h3><p>“Remind me later” dodges your cursor, twice. You’ll catch it eventually.</p></div>
+      <div class="feat"><span>🔥</span><h3>Streaks</h3><p>Daily streaks and a 7-day chart turn “I forgot again” into “day 12, baby”.</p></div>
+      <div class="feat"><span>🌙</span><h3>Knows when to hush</h3><p>Quiet hours and one-click pause for meetings, presentations and deep focus.</p></div>
+      <div class="feat"><span>🔒</span><h3>Private by design</h3><p>No account, no servers, no tracking. Your reminders and photos stay on your computer.</p></div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section id="download" class="download">
+    <div class="dl-buddy" id="dlBuddy"></div>
+    <h2>Give your Dock a buddy.</h2>
+    <p class="sub">Free download. Takes 30 seconds. Your first nudge is one tap away.</p>
+    <div class="dl-grid">
+      <a class="dl-card dl" data-os="mac" href="#">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5V15H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 18h20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <div><b>Download for Mac</b><small>Universal · Apple silicon &amp; Intel · .dmg</small></div>
+      </a>
+      <a class="dl-card dl" data-os="win" href="#">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8-1v7.5H3zM13 3.8l8-1.3v9H13zM3 13h8v7.5l-8-1.1zM13 13h8v8.5l-8-1.3z" fill="currentColor"/></svg>
+        <div><b>Download for Windows</b><small>Windows 10 &amp; 11 · 64-bit · .exe</small></div>
+      </a>
+    </div>
+    <div class="soon">
+      <span>🧩 Chrome extension — coming soon</span>
+      <span>📱 iPhone &amp; Android — coming soon</span>
+    </div>
+    <p class="fine first-open">First launch on Mac: if macOS says it can’t verify the developer, right-click the app → <b>Open</b> → <b>Open</b>. On Windows, click <b>More info → Run anyway</b>.</p>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="faq">
+    <h2>Questions, answered</h2>
+    <details><summary>Is Nudge Buddy free?</summary><p>Yes. Download it and use every feature, no account required.</p></details>
+    <details><summary>Will it slow down my computer?</summary><p>No. It’s a tiny window that only animates one small character. When nobody needs it, your buddy literally takes a nap.</p></details>
+    <details><summary>Can it pop up over other apps?</summary><p>Yes, that’s the whole point. It appears over your editor, browser, chat apps and even full-screen windows. It never takes over your keyboard, so it won’t interrupt your typing.</p></details>
+    <details><summary>What happens during meetings?</summary><p>Hit <b>Pause</b> from the menu bar / tray (30 min, 1 hour, or the rest of the day), or set quiet hours so it never nudges at night.</p></details>
+    <details><summary>Where is my data stored?</summary><p>Only on your computer. There are no servers and no analytics. Uploaded photos are resized and kept locally.</p></details>
+    <details><summary>Can I get rid of the buddy but keep the reminders?</summary><p>Sure: turn off “Live on my Dock” in Settings. Your buddy will only appear when a nudge is due.</p></details>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-brand"><img src="/assets/icon128.png" alt="" width="28" height="28"> Nudge Buddy <span>· made with 💧 by TartanHQ</span></div>
+  <div class="foot-links"><a href="/privacy">Privacy</a><a href="mailto:rohit@tartanhq.com">Contact</a><span>© <span id="yr">2026</span></span></div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script src="/config.js"></script>
+<script src="/characters.js"></script>
+<script src="/overlay.js"></script>
+<script src="/sounds.js"></script>
+<script src="/site.js"></script>
+</body>
+</html>

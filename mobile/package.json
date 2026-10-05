@@ -1,0 +1,22 @@
+{
+  "name": "nudge-buddy-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nudge Buddy for iOS & Android (Capacitor).",
+  "scripts": {
+    "sync": "node scripts/sync.js && npx cap sync",
+    "ios": "npm run sync && npx cap open ios",
+    "android": "npm run sync && npx cap open android",
+    "icons": "npx @capacitor/assets generate --iconBackgroundColor '#ff6b3d' --splashBackgroundColor '#fff6d6'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2"
+  }
+}

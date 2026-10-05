@@ -1,0 +1,72 @@
+{
+  "name": "nudge-buddy-desktop",
+  "productName": "Nudge Buddy",
+  "version": "1.0.0",
+  "description": "Playful reminders & alarms delivered by an animated buddy.",
+  "author": "TartanHQ",
+  "main": "main.js",
+  "scripts": {
+    "sync": "node scripts/sync.js",
+    "start": "npm run sync && electron .",
+    "dist:mac": "npm run sync && electron-builder --mac",
+    "dist:win": "npm run sync && electron-builder --win",
+    "dist:linux": "npm run sync && electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.tartanhq.nudgebuddy",
+    "productName": "Nudge Buddy",
+    "files": [
+      "main.js",
+      "preload.js",
+      "www/**/*",
+      "build/tray.png",
+      "build/icon.png"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "artifactName": "Nudge-Buddy-mac.${ext}"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Nudge-Buddy-windows.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "releaseType": "release"
+      }
+    ]
+  }
+}

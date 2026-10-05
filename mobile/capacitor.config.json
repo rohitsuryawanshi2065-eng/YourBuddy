@@ -1,0 +1,10 @@
+{
+  "appId": "com.tartanhq.nudgebuddy",
+  "appName": "Nudge Buddy",
+  "webDir": "www",
+  "backgroundColor": "#fbf8ff",
+  "ios": { "contentInset": "never" },
+  "plugins": {
+    "LocalNotifications": { "iconColor": "#FF6B3D" }
+  }
+}
