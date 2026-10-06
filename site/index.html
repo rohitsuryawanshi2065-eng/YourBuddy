@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=1.1.1">
+<link rel="stylesheet" href="/styles.css?v=1.2.1">
 </head>
 <body>
 
@@ -167,7 +167,20 @@
       <span>📱 iPhone &amp; Android — coming soon</span>
     </div>
     <p class="fine intel-line">Intel Mac? <a class="dl" data-os="macintel" href="#">Download the Intel version</a></p>
-    <p class="fine first-open">First launch on Mac: if macOS says it can’t verify the developer, right-click the app → <b>Open</b> → <b>Open</b>. On Windows, click <b>More info → Run anyway</b>.</p>
+    <div class="setup">
+      <h3>🎉 Almost there — one quick step on Mac</h3>
+      <p>Nudge Buddy is a free indie app, so macOS asks you to confirm it the first time. It only takes a few seconds:</p>
+      <ol>
+        <li>Open the downloaded file and drag <b>Nudge Buddy</b> into <b>Applications</b>.</li>
+        <li>Open <b>Terminal</b> (press <kbd>⌘</kbd> + <kbd>Space</kbd>, type “Terminal”, press Enter).</li>
+        <li>Paste this command and press Enter:
+          <div class="cmd"><code id="macCmd">xattr -cr "/Applications/Nudge Buddy.app"</code><button type="button" class="copy" onclick="navigator.clipboard.writeText(document.getElementById('macCmd').textContent).then(()=>{this.textContent='Copied ✓';setTimeout(()=>this.textContent='Copy',1800)})">Copy</button></div>
+        </li>
+        <li>Open Nudge Buddy from Applications. That’s it, your buddy is ready to say hi! 👋</li>
+      </ol>
+      <p class="tipline">Updating? Quit the old Nudge Buddy from the menu bar first, then replace it. Your reminders are kept safe.</p>
+      <p class="tipline">On Windows: if you see “Windows protected your PC”, click <b>More info → Run anyway</b>.</p>
+    </div>
   </section>
 
   <!-- FAQ -->
@@ -178,7 +191,7 @@
     <details><summary>Can it pop up over other apps?</summary><p>Yes, that’s the whole point. It appears over your editor, browser, chat apps and even full-screen windows. It never takes over your keyboard, so it won’t interrupt your typing.</p></details>
     <details><summary>What happens during meetings?</summary><p>Hit <b>Pause</b> from the menu bar / tray (30 min, 1 hour, or the rest of the day), or set quiet hours so it never nudges at night.</p></details>
     <details><summary>Where is my data stored?</summary><p>Only on your computer. There are no servers and no analytics. Uploaded photos are resized and kept locally.</p></details>
-    <details><summary>Can I get rid of the buddy but keep the reminders?</summary><p>Sure: turn off “Live on my Dock” in Settings. Your buddy will only appear when a nudge is due.</p></details>
+    <details><summary>Does the buddy stay on my screen all the time?</summary><p>Sure: that’s the default! Your buddy only appears when a nudge is due. Want it to hang around on your desktop? Turn on “Keep my buddy on the desktop” in Settings.</p></details>
   </section>
 </main>
 
@@ -188,12 +201,12 @@
 </footer>
 
 <div class="toast" id="toast"></div>
-<script src="/config.js?v=1.1.1"></script>
+<script src="/config.js?v=1.2.1"></script>
 <script src="/characters.js"></script>
 <script src="/overlay.js"></script>
 <script src="/sounds.js"></script>
 <script src="/cartoonize.js"></script>
 <script>NudgeToon.configure({ base: "/ml/" });</script>
-<script src="/site.js?v=1.1.1"></script>
+<script src="/site.js?v=1.2.1"></script>
 </body>
 </html>

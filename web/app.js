@@ -364,7 +364,7 @@ if (platform.features.autoLaunch) {
 /* ---------------- desktop Dock buddy ---------------- */
 if (platform.name === 'desktop') {
   $('#petCard').hidden = false;
-  const pet = () => ({ enabled: true, wander: true, size: 'm', ...(S.settings.pet || {}) });
+  const pet = () => ({ enabled: false, wander: true, size: 'm', ...(S.settings.pet || {}) });
   const renderPet = () => { const p = pet(); $('#pEnabled').checked = p.enabled; $('#pWander').checked = p.wander; $('#pSize').value = p.size; };
   renderPet(); core.on(renderPet);
   bind('pEnabled', 'change', (t) => core.setSettings({ pet: { ...pet(), enabled: t.checked } }));

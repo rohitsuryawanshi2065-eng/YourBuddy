@@ -20,7 +20,9 @@ function load() {
     const d = JSON.parse(localStorage.getItem(KEY) || '{}');
     state.settings = { ...DEFAULT_SETTINGS, ...(d.settings || {}), quiet: { ...DEFAULT_SETTINGS.quiet, ...((d.settings || {}).quiet || {}) } };
     // v1.2: simple, transparent "run left → right" is the new default
-    if (!state.settings.v12) Object.assign(state.settings, { entrance: 'run', celebration: 'runoff', v12: true });
+    if (!(d.settings || {}).v12) Object.assign(state.settings, { entrance: 'run', celebration: 'runoff', v12: true });
+    // v1.2.1: silent by default, and the buddy only appears for nudges (stay-on-desktop is opt-in)
+    if (!(d.settings || {}).v121) { state.settings.volume = 0; state.settings.pet = { ...(state.settings.pet || {}), enabled: false }; state.settings.v121 = true; }
     state.reminders = d.reminders || [];
     state.customChars = d.customChars || [];
     state.stats = { ...state.stats, ...(d.stats || {}) };

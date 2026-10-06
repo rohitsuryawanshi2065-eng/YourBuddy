@@ -21,7 +21,7 @@ d.onPresent((payload) => core.presentLocal(payload));   // previews / "try it" f
 const petEl = $('#pet'), flipEl = petEl.querySelector('.flip'), bubbleEl = $('#bubble');
 const SIZES = { s: 78, m: 100, l: 132 };
 let charEl = null, petW = 66, petH = 100, charKey = '';
-const petCfg = () => ({ enabled: true, wander: true, size: 'm', ...(S.settings.pet || {}) });
+const petCfg = () => ({ enabled: false, wander: true, size: 'm', ...(S.settings.pet || {}) });
 
 function mountChar() {
   const cfg = petCfg();

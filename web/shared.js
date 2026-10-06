@@ -3,7 +3,8 @@ export const DEFAULT_SETTINGS = {
   name: '',
   characterId: 'arjun',          // preset id or 'custom:<id>'
   sound: 'chime',
-  volume: 0.7,
+  v12: true, v121: true,        // settings-migration markers
+  volume: 0,                     // silent by default
   ringUntilAnswered: true,
   voice: false,                  // buddy speaks the reminder aloud
   mischief: true,                // "Remind me later" dodges the cursor (twice)
@@ -17,7 +18,7 @@ export const DEFAULT_SETTINGS = {
   skipWhenLocked: true,          // hold reminders while the screen is locked
   quiet: { enabled: false, start: '22:00', end: '08:00' },
   pausedUntil: 0,
-  pet: { enabled: true, wander: true, size: 'm' }, // desktop Dock buddy
+  pet: { enabled: false, wander: true, size: 'm' }, // desktop Dock buddy (off by default: shows only for nudges)
 };
 
 export const TEMPLATES = [
