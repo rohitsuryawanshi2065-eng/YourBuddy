@@ -43,9 +43,13 @@ const W = () => innerWidth, H = () => innerHeight;
 
 function setPose(mode) {
   if (!charEl) return;
-  charEl.classList.remove('nb-idle', 'nb-running', 'nb-fast', 'nb-dance', 'nb-impatient');
+  charEl.classList.remove('nb-idle', 'nb-walk', 'nb-running', 'nb-fast', 'nb-dance', 'nb-impatient');
   petEl.classList.remove('sleep', 'look', 'hop');
-  if (mode === 'walk' || mode === 'enter') charEl.classList.add('nb-running');
+  if (mode === 'walk' || mode === 'enter') {
+    // stride ≈ 0.42 × height per full cycle → feet don't slide
+    charEl.style.setProperty('--cyc', Math.max(0.42, Math.min(1.2, (petH * 0.42) / Math.max(20, P.speed))).toFixed(2) + 's');
+    charEl.classList.add(P.speed > 85 ? 'nb-running' : 'nb-walk');
+  }
   else if (mode === 'drag') charEl.classList.add('nb-running', 'nb-fast');
   else if (mode === 'air') petEl.classList.add('hop');
   else if (mode === 'sleep') { petEl.classList.add('sleep'); charEl.classList.add('nb-idle'); }

@@ -166,3 +166,7 @@ input[type=range]{accent-color:var(--pur);flex:1;padding:0!important;border:0!im
 
 .toast{position:fixed;left:50%;bottom:14px;transform:translate(-50%,160%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .35s cubic-bezier(.2,1.5,.4,1);z-index:50;white-space:nowrap}
 .toast.on{transform:translate(-50%,0)}
+
+.toon-loading{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-weight:800;font-size:11px;color:#7a4a32;padding:6px}
+.toon-spin{width:30px;height:30px;border-radius:50%;border:4px solid rgba(255,107,61,.25);border-top-color:var(--acc);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}

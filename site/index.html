@@ -126,8 +126,8 @@
       <div class="upload-stage" id="uploadStage"></div>
       <div>
         <h3>Or… make <em>you</em> the buddy.</h3>
-        <p>Upload a selfie, your dog, or a transparent PNG. Choose head-on-body, sticker or cutout style, and your buddy gets your face. Try it here; the photo never leaves your browser.</p>
-        <label class="btn btn-dark btn-sm">📸 Try with a photo<input type="file" id="upload" accept="image/*" hidden></label>
+        <p>Upload a selfie and Nudge Buddy finds your face, removes the background, redraws you as a cartoon, and dresses your buddy in the colours you’re wearing. It all happens in your browser; the photo never gets uploaded.</p>
+        <label class="btn btn-dark btn-sm">📸 Cartoon me<input type="file" id="upload" accept="image/*" hidden></label>
       </div>
     </div>
   </section>
@@ -182,7 +182,7 @@
 </main>
 
 <footer class="foot">
-  <div class="foot-brand"><img src="/assets/icon128.png" alt="" width="28" height="28"> Nudge Buddy <span>· made with 💧 by TartanHQ</span></div>
+  <div class="foot-brand"><img src="/assets/icon128.png" alt="" width="28" height="28"> Nudge Buddy <span>· made with ❤️ by Mr.Suryawanshi</span></div>
   <div class="foot-links"><a href="/privacy">Privacy</a><a href="mailto:rohit@tartanhq.com">Contact</a><span>© <span id="yr">2026</span></span></div>
 </footer>
 
@@ -191,6 +191,8 @@
 <script src="/characters.js"></script>
 <script src="/overlay.js"></script>
 <script src="/sounds.js"></script>
+<script src="/cartoonize.js"></script>
+<script>NudgeToon.configure({ base: "/ml/" });</script>
 <script src="/site.js"></script>
 </body>
 </html>

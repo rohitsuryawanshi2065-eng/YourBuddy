@@ -63,9 +63,9 @@
   function mountPet() { petChar = mount(flip, current, '', 'nb-idle'); setPose(P.mode); }
   function setPose(m) {
     if (!petChar) return;
-    petChar.classList.remove('nb-idle', 'nb-running', 'nb-fast', 'nb-dance');
+    petChar.classList.remove('nb-idle', 'nb-walk', 'nb-running', 'nb-fast', 'nb-dance');
     petEl.classList.remove('hop');
-    if (m === 'walk') petChar.classList.add('nb-running');
+    if (m === 'walk') { petChar.style.setProperty('--cyc', Math.max(.45, Math.min(1.2, ph * .42 / P.speed)).toFixed(2) + 's'); petChar.classList.add('nb-walk'); }
     else if (m === 'drag') petChar.classList.add('nb-running', 'nb-fast');
     else if (m === 'air') petEl.classList.add('hop');
     else if (m === 'dance') petChar.classList.add('nb-dance');
@@ -191,20 +191,21 @@
 
   /* ---------------- upload: make you the buddy ---------------- */
   mount($('#uploadStage'), { kind: 'preset', id: 'arjun' }, '📸', 'nb-idle');
+  $('#upload').addEventListener('click', () => window.NudgeToon && NudgeToon.preload());
   $('#upload').addEventListener('change', async (e) => {
     const f = e.target.files[0]; if (!f) return;
+    const stage = $('#uploadStage');
+    stage.innerHTML = '<div class="toon-loading"><div class="toon-spin"></div><span id="toonStep">✨ Turning you into a cartoon…</span></div>';
     try {
-      const bmp = await createImageBitmap(f);
-      const sc = Math.min(1, 420 / Math.max(bmp.width, bmp.height));
-      const cv = document.createElement('canvas'); cv.width = bmp.width * sc; cv.height = bmp.height * sc;
-      const ctx = cv.getContext('2d'); ctx.drawImage(bmp, 0, 0, cv.width, cv.height);
-      const transparent = ctx.getImageData(0, 0, 1, 1).data[3] < 200;
-      const spec = { kind: 'custom', dataUrl: cv.toDataURL(transparent ? 'image/png' : 'image/jpeg', .88), mode: transparent ? 'cutout' : 'body', color: '#4a7cc4', crop: { zoom: 1, x: 0, y: 0 } };
-      mount($('#uploadStage'), spec, '💧', 'nb-dance');
+      const r = await NudgeToon.cartoonize(f, { onStep: (t) => { const el = $('#toonStep'); if (el) el.textContent = '✨ ' + t; } });
+      let spec;
+      if (r.ok) spec = { kind: 'custom', dataUrl: r.head, mode: 'toon', color: r.shirt, skin: r.skin, crop: { zoom: 1, x: 0, y: 0 } };
+      else spec = { kind: 'custom', dataUrl: r.photo, mode: 'body', color: '#4a7cc4', crop: { zoom: 1, x: 0, y: 0 } };
+      mount(stage, spec, '💧', 'nb-dance');
       current = spec; currentName = 'You'; setBuddy();
       $$('.bcard').forEach((x) => x.classList.remove('on'));
-      toast('Look at you! You’re on the Dock now ⬆️');
-    } catch (err) { toast('Couldn’t read that image'); }
+      toast(r.ok ? 'Ta-da! Cartoon you is on the Dock now ⬆️' : 'Couldn’t spot a face, so we used your photo ⬆️');
+    } catch (err) { mount(stage, { kind: 'preset', id: 'arjun' }, '📸', 'nb-idle'); toast('Couldn’t read that image'); }
   });
 
   /* ---------------- nav + reveal ---------------- */

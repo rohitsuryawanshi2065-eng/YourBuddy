@@ -5,7 +5,6 @@ web/       shared app: UI, scheduler (core.js), Dock buddy (pet.js), characters,
 desktop/   Electron app for macOS / Windows: settings window + Dock buddy + tray/menu bar
 mobile/    Capacitor app for iOS / Android (local notifications)
 site/      landing page for Vercel (static, no build step)
-chrome-extension/  the Chrome extension (load unpacked, or zip for the Web Store)
 .github/   GitHub Actions: builds the Mac .dmg + Windows .exe and publishes a Release
 ```
 

@@ -88,7 +88,7 @@ function speak(settings, payload) {
 function resolveCharacter(st, charId) {
   if (charId && charId.startsWith('custom:')) {
     const c = st.customChars.find((x) => x.id === charId.slice(7));
-    if (c) return { kind: 'custom', dataUrl: c.dataUrl, mode: c.mode, color: c.color, crop: c.crop };
+    if (c) return { kind: 'custom', dataUrl: c.dataUrl, mode: c.mode, color: c.color, crop: c.crop, skin: c.skin };
     return { kind: 'preset', id: 'arjun' };
   }
   return { kind: 'preset', id: charId || 'arjun' };

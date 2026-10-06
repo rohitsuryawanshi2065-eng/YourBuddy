@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS, TEMPLATES, EMOJIS, dayKey, fmtMin, fmtDays, streakInf
 
 const Chars = globalThis.NudgeChars;
 const Sounds = globalThis.NudgeSounds;
+globalThis.NudgeToon && globalThis.NudgeToon.configure({ base: 'ml/' });
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const params = new URLSearchParams(location.search);
@@ -32,7 +33,7 @@ async function saveSettings(patch) {
 function charSpec(id) {
   if (id && id.startsWith('custom:')) {
     const c = S.customChars.find((x) => x.id === id.slice(7));
-    if (c) return { kind: 'custom', dataUrl: c.dataUrl, mode: c.mode, color: c.color, crop: c.crop };
+    if (c) return { kind: 'custom', dataUrl: c.dataUrl, mode: c.mode, color: c.color, crop: c.crop, skin: c.skin };
   }
   return { kind: 'preset', id: id && !id.startsWith('custom:') ? id : 'arjun' };
 }
@@ -243,7 +244,7 @@ function renderBuddies() {
   }));
   const add = $('#addBuddy');
   add.addEventListener('click', () => {
-    if (FULL) $('#file').click();
+    if (FULL) { globalThis.NudgeToon && NudgeToon.preload(); $('#file').click(); }
     else chrome.tabs.create({ url: chrome.runtime.getURL('popup.html?full=1&tab=buddies&upload=1') });
   });
   add.addEventListener('dragover', (e) => { e.preventDefault(); add.classList.add('drag'); });
@@ -270,17 +271,40 @@ async function handleFile(file) {
   ctx.drawImage(bmp, 0, 0, cv.width, cv.height);
   const corners = [[0, 0], [cv.width - 1, 0], [0, cv.height - 1], [cv.width - 1, cv.height - 1]].map(([x, y]) => ctx.getImageData(x, y, 1, 1).data[3]);
   const transparent = corners.some((a) => a < 200);
-  const dataUrl = file.type === 'image/jpeg' ? cv.toDataURL('image/jpeg', 0.9) : cv.toDataURL('image/png');
-  draft = { id: Math.random().toString(36).slice(2, 10), name: (file.name || 'My buddy').replace(/\.[^.]+$/, '').slice(0, 20), dataUrl, mode: transparent ? 'cutout' : 'body', color: COLORS[0], crop: { zoom: 1, x: 0, y: 0 } };
+  const photo = transparent ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.88);
+  const name = (file.name || 'My buddy').replace(/\.[^.]+$/, '').slice(0, 20);
+
+  // Show the editor with a "drawing you" state while the cartoon is made on-device
+  $('#editor').hidden = false;
+  $('#editorStage').innerHTML = '<div class="toon-loading"><div class="toon-spin"></div><span id="toonStep">✨ Turning you into a cartoon…</span></div>';
+  $('#editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  let toon = null;
+  try {
+    toon = await globalThis.NudgeToon.cartoonize(bmp, { onStep: (t) => { const el = $('#toonStep'); if (el) el.textContent = '✨ ' + t; } });
+  } catch (e) { toon = null; }
+  const base = { id: Math.random().toString(36).slice(2, 10), name, photo, crop: { zoom: 1, x: 0, y: 0 } };
+  if (toon && toon.ok) {
+    draft = { ...base, toon: toon.head, dataUrl: toon.head, mode: 'toon', color: toon.shirt, skin: toon.skin, hair: toon.hair, palette: [toon.shirt] };
+    toast('Ta-da! Meet cartoon you 🎨');
+  } else {
+    draft = { ...base, dataUrl: photo, mode: transparent ? 'cutout' : 'body', color: COLORS[0] };
+    toast(toon && toon.reason === 'noface' ? 'No face found — using the photo instead' : 'Using your photo as-is');
+  }
   openEditor();
 }
 function openEditor() {
   $('#editor').hidden = false;
   $('#eName').value = draft.name;
   $('#eZoom').value = draft.crop.zoom; $('#eX').value = draft.crop.x; $('#eY').value = draft.crop.y;
-  $('#eMode').innerHTML = Chars.customModes.map((m) => `<button data-v="${m.id}" class="${m.id === draft.mode ? 'on' : ''}">${m.name.replace(' (transparent PNG)', '')}</button>`).join('');
-  $$('#eMode button').forEach((b) => b.addEventListener('click', () => { draft.mode = b.dataset.v; openEditor(); }));
-  $('#eColor').innerHTML = COLORS.map((c) => `<button data-c="${c}" class="${c === draft.color ? 'on' : ''}" style="background:${c}"></button>`).join('');
+  const modes = Chars.customModes.filter((m) => m.id !== 'toon' || draft.toon);
+  $('#eMode').innerHTML = modes.map((m) => `<button data-v="${m.id}" class="${m.id === draft.mode ? 'on' : ''}">${m.name.replace(' (transparent PNG)', '')}</button>`).join('');
+  $$('#eMode button').forEach((b) => b.addEventListener('click', () => {
+    draft.mode = b.dataset.v;
+    draft.dataUrl = draft.mode === 'toon' ? draft.toon : draft.photo;
+    openEditor();
+  }));
+  const swatches = [...new Set([...(draft.palette || []), ...COLORS])].slice(0, 9);
+  $('#eColor').innerHTML = swatches.map((c) => `<button data-c="${c}" class="${c === draft.color ? 'on' : ''}" style="background:${c}" title="${c === (draft.palette || [])[0] ? 'From your photo' : ''}"></button>`).join('');
   $$('#eColor button').forEach((b) => b.addEventListener('click', () => { draft.color = b.dataset.c; openEditor(); }));
   drawEditor();
   $('#editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });

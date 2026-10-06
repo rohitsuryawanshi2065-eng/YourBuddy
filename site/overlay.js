@@ -104,7 +104,7 @@
   function face(dir) { S.flip.classList.toggle('left', dir < 0); }
   function setChar(...cls) {
     const c = S.char;
-    c.classList.remove('nb-idle', 'nb-running', 'nb-fast', 'nb-impatient', 'nb-angry', 'nb-dance', 'nb-squash', 'nb-crouch');
+    c.classList.remove('nb-idle', 'nb-walk', 'nb-running', 'nb-fast', 'nb-impatient', 'nb-angry', 'nb-dance', 'nb-squash', 'nb-crouch');
     cls.forEach((k) => k && c.classList.add(k));
   }
   function lean(deg) { S.char.style.setProperty('--lean', deg + 'deg'); }
@@ -483,7 +483,7 @@
     const { charW, charH } = S;
     // moonwalk backwards while a big 3-2-1 counts down
     const dir = S.x + charW / 2 > S.W / 2 ? 1 : -1; // drift toward nearer edge
-    face(-dir); lean(-4); setChar('nb-running');
+    face(-dir); lean(-4); setChar('nb-walk');
     S.char.querySelectorAll('.nb-leg,.nb-arm').forEach((n) => (n.style.animationDirection = 'alternate-reverse'));
     moveTo(S.x + dir * Math.min(220, S.W * .2), S.y, 2100, 'linear');
     for (const n of [3, 2, 1]) {

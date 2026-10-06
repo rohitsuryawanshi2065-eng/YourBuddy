@@ -174,6 +174,21 @@
         <g class="nb-arm nb-arm-r" style="--o:172px 120px"><path d="M172 120 Q196 96 188 64" stroke="${c}" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="188" cy="60" r="8" fill="#fff" stroke="${c}" stroke-width="3"/>${prop(e, 190, 36)}</g>`);
       },
     },
+    // Cartoonized head (from NudgeToon) on a body dressed in the colours found in the photo
+    toon: {
+      face: { x: 22, y: 0, w: 156, h: 146, shape: 'none', fit: 'contain', align: 'bottom' },
+      svg: (e, color, o = {}) => {
+        const c = color || '#4a7cc4', d = shade(c, -0.14), skin = o.skin || '#f0c08a', pants = o.pants || '#2f3b52';
+        return svgWrap(`
+        <g class="nb-leg nb-leg-l" style="--o:86px 212px"><path d="M86 212 L84 266" stroke="${pants}" stroke-width="20" stroke-linecap="round"/><ellipse cx="80" cy="276" rx="16" ry="8.5" fill="#fff" stroke="#c9cdd6" stroke-width="2.5"/></g>
+        <g class="nb-leg nb-leg-r" style="--o:114px 212px"><path d="M114 212 L116 266" stroke="${pants}" stroke-width="20" stroke-linecap="round"/><ellipse cx="120" cy="276" rx="16" ry="8.5" fill="#fff" stroke="#c9cdd6" stroke-width="2.5"/></g>
+        <g class="nb-arm nb-arm-l" style="--o:74px 156px"><path d="M74 156 Q60 184 64 206" stroke="${d}" stroke-width="17" fill="none" stroke-linecap="round"/><circle cx="64" cy="212" r="8.5" fill="${skin}"/></g>
+        <rect x="91" y="128" width="18" height="22" rx="5" fill="${shade(skin, -0.08)}"/>
+        <path d="M70 152 Q100 140 130 152 L134 216 Q100 224 66 216Z" fill="${c}"/>
+        <path d="M88 146 Q100 158 112 146" stroke="${d}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <g class="nb-arm nb-arm-r" style="--o:126px 156px"><path d="M126 156 Q156 176 152 140" stroke="${d}" stroke-width="17" fill="none" stroke-linecap="round"/><circle cx="151" cy="133" r="8.5" fill="${skin}"/>${prop(e, 160, 110)}</g>`);
+      },
+    },
     cutout: {
       face: { x: 6, y: 0, w: 188, h: 218, shape: 'none', fit: 'contain' },
       svg: (e, color) => {
@@ -221,7 +236,8 @@
     const fit = face.fit === 'contain' ? Math.min : Math.max;
     const s = fit(cw / bmp.width, ch / bmp.height) * z;
     const dw = bmp.width * s, dh = bmp.height * s;
-    ctx.drawImage(bmp, (cw - dw) / 2 + ox * cw, (ch - dh) / 2 + oy * ch, dw, dh);
+    const dy0 = face.align === 'bottom' ? ch - dh : (ch - dh) / 2;
+    ctx.drawImage(bmp, (cw - dw) / 2 + ox * cw, dy0 + oy * ch, dw, dh);
     ctx.restore();
     if (face.shape !== 'none') {
       ctx.lineWidth = border * 2; ctx.strokeStyle = '#fff'; ctx.stroke(path);
@@ -244,7 +260,7 @@
     const r = resolve(spec);
     const el = document.createElement('div');
     el.className = 'nb-char' + (r.def.floaty ? ' nb-floaty' : '') + (r.custom ? ' nb-custom nb-mode-' + r.mode : '');
-    const svg = r.custom ? r.def.svg(emoji, spec.color) : r.def.svg(emoji);
+    const svg = r.custom ? r.def.svg(emoji, spec.color, { skin: spec.skin, pants: spec.pants }) : r.def.svg(emoji);
     setHTML(el, `<div class="nb-shadow"></div><div class="nb-inner">${svg}</div>`);
     if (r.custom) {
       const f = r.def.face;
@@ -264,6 +280,7 @@
   .nb-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;display:block}
   .nb-face{position:absolute;display:block;pointer-events:none}
   .nb-mode-cutout .nb-face{filter:drop-shadow(0 0 0 #fff) drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 6px 8px rgba(0,0,0,.25))}
+  .nb-mode-toon .nb-face{filter:drop-shadow(0 4px 6px rgba(0,0,0,.22))}
   .nb-mode-sticker .nb-face{filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
   .nb-shadow{position:absolute;left:24%;right:24%;bottom:0.5%;height:4%;border-radius:50%;background:rgba(0,0,0,.2);filter:blur(2px)}
   .nb-arm,.nb-leg,.nb-tail,.nb-eyes{transform-box:view-box;transform-origin:var(--o,100px 150px)}
@@ -271,18 +288,50 @@
   .nb-eyes{animation:nb-blink 4.2s infinite}
   .nb-tail{animation:nb-wag .7s ease-in-out infinite alternate}
   .nb-pulse,.nb-antenna{animation:nb-pulse 1s ease-in-out infinite}
-  .nb-idle .nb-inner{animation:nb-bob 1.7s ease-in-out infinite}
+  .nb-idle .nb-inner{animation:nb-breathe 2.4s ease-in-out infinite;transform-origin:50% 100%}
   .nb-idle .nb-arm-r{animation:nb-wave 1.3s ease-in-out infinite}
   .nb-idle .nb-prop{animation:nb-propbob 1.3s ease-in-out infinite}
   .nb-floaty .nb-inner{animation:nb-float 2.2s ease-in-out infinite}
   .nb-floaty .nb-shadow{animation:nb-shadowpulse 2.2s ease-in-out infinite}
-  .nb-running .nb-inner{animation:nb-runbob .17s ease-in-out infinite alternate}
-  .nb-running .nb-leg-l{animation:nb-swing .34s ease-in-out infinite alternate}
-  .nb-running .nb-leg-r{animation:nb-swing .34s ease-in-out infinite alternate-reverse}
-  .nb-running .nb-arm-l{animation:nb-swing .34s ease-in-out infinite alternate-reverse}
-  .nb-running .nb-arm-r{animation:nb-swing .34s ease-in-out infinite alternate}
-  .nb-running.nb-fast .nb-leg-l,.nb-running.nb-fast .nb-leg-r,.nb-running.nb-fast .nb-arm-l,.nb-running.nb-fast .nb-arm-r{animation-duration:.18s}
-  .nb-running.nb-fast .nb-inner{animation-duration:.09s}
+  /* ---- walk cycle: planted stance, lifted swing, counter-swinging arms, double bob + sway ---- */
+  .nb-walk,.nb-running{--cyc:.8s;--amp:1}
+  .nb-running{--cyc:.42s}
+  .nb-running.nb-fast{--cyc:.26s}
+  .nb-walk .nb-leg-l,.nb-running .nb-leg-l{animation:nb-step var(--cyc) linear infinite}
+  .nb-walk .nb-leg-r,.nb-running .nb-leg-r{animation:nb-step var(--cyc) linear infinite;animation-delay:calc(var(--cyc) * -.5)}
+  .nb-walk .nb-arm-l,.nb-running .nb-arm-l{animation:nb-armswing var(--cyc) ease-in-out infinite;animation-delay:calc(var(--cyc) * -.5)}
+  .nb-walk .nb-arm-r,.nb-running .nb-arm-r{animation:nb-armswing var(--cyc) ease-in-out infinite}
+  .nb-walk .nb-inner{animation:nb-walkbob var(--cyc) ease-in-out infinite}
+  .nb-running .nb-inner{animation:nb-runbob var(--cyc) ease-in-out infinite}
+  .nb-walk .nb-face,.nb-running .nb-face{animation:nb-headnod var(--cyc) ease-in-out infinite;transform-origin:50% 100%}
+  .nb-walk .nb-prop,.nb-running .nb-prop{animation:nb-propbob calc(var(--cyc) * .5) ease-in-out infinite}
+  .nb-running .nb-leg-l,.nb-running .nb-leg-r{animation-name:nb-runstep}
+  .nb-running .nb-arm-l,.nb-running .nb-arm-r{animation-name:nb-runarm}
+  @keyframes nb-step{
+    0%{transform:rotate(-22deg) scaleY(1)}
+    50%{transform:rotate(20deg) scaleY(1)}
+    60%{transform:rotate(16deg) scaleY(.86)}
+    78%{transform:rotate(-8deg) scaleY(.8)}
+    92%{transform:rotate(-20deg) scaleY(.96)}
+    100%{transform:rotate(-22deg) scaleY(1)}}
+  @keyframes nb-runstep{
+    0%{transform:rotate(-34deg) scaleY(1)}
+    45%{transform:rotate(30deg) scaleY(1)}
+    58%{transform:rotate(26deg) scaleY(.72)}
+    78%{transform:rotate(-14deg) scaleY(.7)}
+    100%{transform:rotate(-34deg) scaleY(1)}}
+  @keyframes nb-armswing{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-18deg)}}
+  @keyframes nb-runarm{0%,100%{transform:rotate(34deg)}50%{transform:rotate(-34deg)}}
+  @keyframes nb-walkbob{
+    0%{transform:translateY(0) rotate(calc(var(--lean,0deg) - 1.5deg))}
+    25%{transform:translateY(-2.6%) rotate(var(--lean,0deg))}
+    50%{transform:translateY(0) rotate(calc(var(--lean,0deg) + 1.5deg))}
+    75%{transform:translateY(-2.6%) rotate(var(--lean,0deg))}
+    100%{transform:translateY(0) rotate(calc(var(--lean,0deg) - 1.5deg))}}
+  @keyframes nb-runbob{
+    0%,50%,100%{transform:translateY(0) rotate(calc(var(--lean,0deg) + 4deg)) scale(1.02,.98)}
+    25%,75%{transform:translateY(-5%) rotate(calc(var(--lean,0deg) + 4deg)) scale(.98,1.03)}}
+  @keyframes nb-headnod{0%,50%,100%{transform:rotate(-2deg)}25%,75%{transform:rotate(2deg) translateY(-1%)}}
   .nb-impatient .nb-leg-r{animation:nb-tap .28s ease-in-out infinite alternate}
   .nb-impatient .nb-inner{animation:nb-huff .9s ease-in-out infinite}
   .nb-angry .nb-inner{animation:nb-shake .12s linear infinite}
@@ -292,7 +341,8 @@
   .nb-dance .nb-leg-l{animation:nb-swing .5s infinite alternate}
   .nb-squash .nb-inner{animation:nb-squash .45s cubic-bezier(.3,1.6,.5,1) 1}
   .nb-crouch .nb-inner{transform:scale(1.08,.84);transition:transform .25s}
-  @keyframes nb-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+  @keyframes nb-blink{0%,88%,100%{transform:scaleY(1)}90%{transform:scaleY(.08)}92%{transform:scaleY(1)}95%{transform:scaleY(.08)}97%{transform:scaleY(1)}}
+  @keyframes nb-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.985) translateY(-.6%)}}
   @keyframes nb-wag{from{transform:rotate(-10deg)}to{transform:rotate(12deg)}}
   @keyframes nb-pulse{50%{opacity:.45}}
   @keyframes nb-bob{50%{transform:translateY(-2.2%)}}
@@ -300,7 +350,6 @@
   @keyframes nb-shadowpulse{50%{transform:scaleX(.75);opacity:.6}}
   @keyframes nb-wave{0%,100%{transform:rotate(0)}50%{transform:rotate(-16deg)}}
   @keyframes nb-propbob{50%{transform:rotate(10deg) scale(1.08)}}
-  @keyframes nb-runbob{from{transform:translateY(0) rotate(var(--lean,0deg))}to{transform:translateY(-3.5%) rotate(var(--lean,0deg))}}
   @keyframes nb-swing{from{transform:rotate(-30deg)}to{transform:rotate(30deg)}}
   @keyframes nb-tap{from{transform:rotate(0)}to{transform:rotate(-14deg)}}
   @keyframes nb-huff{0%,100%{transform:scale(1)}50%{transform:scale(1.03,.97)}}
@@ -312,6 +361,7 @@
   g.NudgeChars = {
     presets: Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name, tagline: p.tagline })),
     customModes: [
+      { id: 'toon', name: 'Cartoon me' },
       { id: 'body', name: 'Head on body' },
       { id: 'sticker', name: 'Sticker' },
       { id: 'cutout', name: 'Cutout (transparent PNG)' },

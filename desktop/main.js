@@ -1,7 +1,24 @@
 // Nudge Buddy — desktop app (Electron). A normal window that lives on in the tray/menu bar,
 // pops to the front with the animated buddy when a nudge is due.
-const { app, BrowserWindow, Tray, Menu, ipcMain, Notification, nativeImage, shell, screen } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, Notification, nativeImage, shell, screen, protocol, net } = require('electron');
+const { pathToFileURL } = require('url');
 const path = require('path');
+
+// Serve the UI from app://bundle/ instead of file:// so fetch()/WebAssembly (face model) work.
+protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
+const WWW = path.join(__dirname, 'www');
+const MIME = { '.wasm': 'application/wasm', '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json', '.tflite': 'application/octet-stream', '.binarypb': 'application/octet-stream', '.data': 'application/octet-stream' };
+function registerAppProtocol() {
+  protocol.handle('app', async (req) => {
+    const rel = decodeURIComponent(new URL(req.url).pathname).replace(/^\/+/, '');
+    const file = path.normalize(path.join(WWW, rel));
+    if (!file.startsWith(WWW)) return new Response('forbidden', { status: 403 });
+    const res = await net.fetch(pathToFileURL(file).toString());
+    const type = MIME[path.extname(file).toLowerCase()];
+    if (!type || !res.ok) return res;
+    return new Response(res.body, { status: res.status, headers: { 'content-type': type } });
+  });
+}
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 if (process.platform === 'win32') app.setAppUserModelId('com.tartanhq.nudgebuddy');
@@ -23,7 +40,7 @@ function createWindow() {
       backgroundThrottling: false, // keep the 1s scheduler running while hidden
     },
   });
-  win.loadFile(path.join(__dirname, 'www', 'index.html'));
+  win.loadURL('app://bundle/index.html');
   win.once('ready-to-show', () => { if (!process.argv.includes('--hidden')) win.show(); });
   // Closing the window keeps the app alive in the tray so nudges still fire.
   win.on('close', (e) => {
@@ -59,7 +76,7 @@ function createPet() {
   pet.setAlwaysOnTop(true, 'screen-saver');
   pet.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   pet.setIgnoreMouseEvents(true, { forward: true });
-  pet.loadFile(path.join(__dirname, 'www', 'pet.html'));
+  pet.loadURL('app://bundle/pet.html');
   pet.once('ready-to-show', () => pet.showInactive());
   pet.on('closed', () => { pet = null; });
   const fit = () => pet && pet.setBounds(petBounds());
@@ -94,6 +111,7 @@ function buildTrayMenu() {
 }
 
 app.whenReady().then(() => {
+  registerAppProtocol();
   createPet();
   createWindow();
   const img = nativeImage.createFromPath(asset('tray.png')).resize({ width: 18, height: 18 });
