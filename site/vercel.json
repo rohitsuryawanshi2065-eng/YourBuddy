@@ -2,14 +2,48 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
-    { "source": "/(.*)\\.(js|css|png|svg)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] },
-    { "source": "/(.*)", "headers": [
-      { "key": "X-Content-Type-Options", "value": "nosniff" },
-      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
-    ] }
+    {
+      "source": "/(.*)\\.(js|css)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(png|svg|wasm|tflite|binarypb|data)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
   ],
   "redirects": [
-    { "source": "/download/mac", "destination": "/#download", "permanent": false },
-    { "source": "/download/windows", "destination": "/#download", "permanent": false }
+    {
+      "source": "/download/mac",
+      "destination": "/#download",
+      "permanent": false
+    },
+    {
+      "source": "/download/windows",
+      "destination": "/#download",
+      "permanent": false
+    }
   ]
 }

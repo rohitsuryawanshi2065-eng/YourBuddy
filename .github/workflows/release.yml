@@ -49,6 +49,8 @@ jobs:
         with:
           path: out
           merge-multiple: true
+      - name: Keep the old Mac filename working (alias of the Apple silicon build)
+        run: cp out/Nudge-Buddy-mac-arm64.dmg out/Nudge-Buddy-mac.dmg
       - run: ls -la out
       - name: Create release
         env:

@@ -1,0 +1,22 @@
+# One-off helper: adds Nudge-Buddy-mac.dmg (copy of the Apple silicon build) to the latest
+# release so older links keep working. Runs when this file changes, or manually.
+name: Add Mac download alias
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/mac-alias.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  alias:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy arm64 dmg to Nudge-Buddy-mac.dmg on the latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" -p Nudge-Buddy-mac-arm64.dmg -D out
+          cp out/Nudge-Buddy-mac-arm64.dmg out/Nudge-Buddy-mac.dmg
+          gh release upload "$TAG" out/Nudge-Buddy-mac.dmg --repo "$GITHUB_REPOSITORY" --clobber
