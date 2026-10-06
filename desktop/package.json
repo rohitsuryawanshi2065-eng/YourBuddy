@@ -1,7 +1,7 @@
 {
   "name": "nudge-buddy-desktop",
   "productName": "Nudge Buddy",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Playful reminders & alarms delivered by an animated buddy.",
   "author": "Mr.Suryawanshi",
   "main": "main.js",
@@ -23,6 +23,8 @@
       "main.js",
       "preload.js",
       "www/**/*",
+      "!www/**/*.md",
+      "!www/icons/icon.svg",
       "build/tray.png",
       "build/icon.png"
     ],
@@ -33,11 +35,12 @@
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "arm64",
+            "x64"
           ]
         }
       ],
-      "artifactName": "Nudge-Buddy-mac.${ext}"
+      "artifactName": "Nudge-Buddy-mac-${arch}.${ext}"
     },
     "win": {
       "icon": "build/icon.png",
@@ -53,7 +56,8 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "differentialPackage": false
     },
     "linux": {
       "icon": "build/icon.png",
@@ -69,7 +73,18 @@
         "repo": "YourBuddy",
         "releaseType": "release"
       }
-    ]
+    ],
+    "compression": "maximum",
+    "electronLanguages": [
+      "en",
+      "en-US",
+      "en-GB"
+    ],
+    "asar": true,
+    "dmg": {
+      "format": "ULFO",
+      "writeUpdateInfo": false
+    }
   },
   "repository": {
     "type": "git",

@@ -1,5 +1,5 @@
-# Builds the desktop app on real Mac + Windows machines and attaches the installers
-# to a GitHub Release. Trigger: push a tag like v1.0.0  (git tag v1.0.0 && git push --tags)
+# Builds the desktop app on real Mac + Windows machines, then publishes ONE GitHub Release
+# with all installers. Trigger: push a tag like v1.1.1  (git tag v1.1.1 && git push --tags)
 name: Release desktop app
 on:
   push:
@@ -9,7 +9,6 @@ permissions:
   contents: write
 jobs:
   build:
-    # each OS builds independently, so one failure does not cancel the other
     strategy:
       fail-fast: false
       matrix:
@@ -29,9 +28,31 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: npm run sync
-      - name: Build & publish installer
-        run: npx electron-builder ${{ matrix.target }} --publish always
+      - name: Build installer (no publishing here)
+        run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.os }}
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.exe
+          if-no-files-found: error
+
+  publish:
+    # Runs once, after both builds → exactly one release, so "latest" always has every file.
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - run: ls -la out
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Unsigned builds by default. Add signing secrets later (see README):
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release create "$TAG" out/* --repo "$GITHUB_REPOSITORY" --title "Nudge Buddy $TAG" --notes "Download for Mac (Apple silicon or Intel) or Windows." --latest
