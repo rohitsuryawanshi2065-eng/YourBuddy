@@ -10,4 +10,3 @@ Nudge Buddy does not collect, transmit, sell or share any personal data.
 - **Text-to-speech** (optional, off by default) uses Chrome's built-in `chrome.tts` voices.
 - **Removing data:** uninstalling the extension deletes all of its stored data. You can also delete individual reminders and buddies, or reset stats, at any time.
 
-Contact: rohit@tartanhq.com

@@ -3,7 +3,7 @@
   "productName": "Nudge Buddy",
   "version": "1.1.0",
   "description": "Playful reminders & alarms delivered by an animated buddy.",
-  "author": "TartanHQ",
+  "author": "Mr.Suryawanshi",
   "main": "main.js",
   "scripts": {
     "sync": "node scripts/sync.js",
