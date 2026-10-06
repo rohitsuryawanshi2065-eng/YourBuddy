@@ -5,6 +5,7 @@ window.NB_CONFIG = {
   macFile: 'Nudge-Buddy-mac-arm64.dmg',      // Apple silicon (M1–M4)
   macIntelFile: 'Nudge-Buddy-mac-x64.dmg',   // Intel Macs
   winFile: 'Nudge-Buddy-windows.exe',
+  androidFile: 'Nudge-Buddy-android.apk',     // Android phones (sideload APK)
   // Or set direct URLs instead (e.g. files you host yourself). Leave '' to use GitHub Releases.
   macUrl: '',
   winUrl: '',

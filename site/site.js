@@ -15,8 +15,8 @@
   /* ---------------- downloads + OS detection ---------------- */
   const cfg = window.NB_CONFIG || {};
   const gh = (f) => `https://github.com/${cfg.repo}/releases/latest/download/${f}`;
-  const urls = { mac: cfg.macUrl || gh(cfg.macFile), macintel: gh(cfg.macIntelFile || 'Nudge-Buddy-mac-x64.dmg'), win: cfg.winUrl || gh(cfg.winFile) };
-  const os = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? 'mac' : /Win/.test(navigator.platform || navigator.userAgent) ? 'win' : null;
+  const urls = { mac: cfg.macUrl || gh(cfg.macFile), macintel: gh(cfg.macIntelFile || 'Nudge-Buddy-mac-x64.dmg'), win: cfg.winUrl || gh(cfg.winFile), android: cfg.androidUrl || gh(cfg.androidFile || 'Nudge-Buddy-android.apk') };
+  const os = /Android/i.test(navigator.userAgent) ? 'android' : /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? 'mac' : /Win/.test(navigator.platform || navigator.userAgent) ? 'win' : null;
   const notConfigured = !cfg.repo || cfg.repo.startsWith('YOUR-');
   $$('.dl').forEach((a) => {
     const k = a.dataset.os;
@@ -25,10 +25,11 @@
     if (k === os) a.classList.add('recommended');
     a.addEventListener('click', (e) => {
       if (notConfigured) { e.preventDefault(); toast('Downloads go live after the first release ✨'); return; }
-      toast(k === 'mac' || k === 'macintel' ? '⬇️ Downloading for Mac… see you on the Dock!' : '⬇️ Downloading for Windows… see you on the taskbar!');
+      toast(k === 'android' ? '⬇️ Downloading for Android… open the file when it’s done!' : k === 'mac' || k === 'macintel' ? '⬇️ Downloading for Mac… see you on the Dock!' : '⬇️ Downloading for Windows… see you on the taskbar!');
     });
   });
   // Put the visitor's OS first in the hero
+  if (os === 'android') { const row = $('.cta-row'), a = row.querySelector('[data-os=android]'); row.insertBefore(a, row.children[0]); [...row.children].forEach((c, i) => { c.classList.toggle('btn-primary', i === 0); c.classList.toggle('btn-ghost', i !== 0); }); const st = document.querySelector('.setup-android'), mac = document.querySelector('.setup:not(.setup-android)'); if (st && mac) mac.parentNode.insertBefore(st, mac); }
   if (os === 'win') { const row = $('.cta-row'); row.insertBefore(row.children[1], row.children[0]); row.children[0].classList.replace('btn-ghost', 'btn-primary'); row.children[1].classList.replace('btn-primary', 'btn-ghost'); }
 
   /* ---------------- dock icons (generic, original) ---------------- */

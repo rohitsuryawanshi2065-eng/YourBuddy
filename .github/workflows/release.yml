@@ -1,5 +1,5 @@
-# Builds the desktop app on real Mac + Windows machines, then publishes ONE GitHub Release
-# with all installers. Trigger: push a tag like v1.1.1  (git tag v1.1.1 && git push --tags)
+# Builds the desktop app on real Mac + Windows machines and the Android APK, then publishes ONE
+# GitHub Release with all installers. Trigger: push a tag like v1.1.1  (git tag v1.1.1 && git push --tags)
 name: Release desktop app
 on:
   push:
@@ -40,9 +40,43 @@ jobs:
             desktop/dist/*.exe
           if-no-files-found: error
 
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - run: npm ci --no-audit --no-fund
+      - name: Copy the shared web app into the Android project
+        run: node scripts/sync.js && npx cap sync android
+      - name: Build signed APK
+        working-directory: mobile/android
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          V="${GITHUB_REF_NAME#v}"; IFS=. read -r MA MI PA <<< "$V"
+          export NB_VERSION_NAME="$V" NB_VERSION_CODE=$(( ${MA:-1}*10000 + ${MI:-0}*100 + ${PA:-0} ))
+          chmod +x gradlew && ./gradlew --no-daemon assembleRelease
+          mkdir -p ../../out && cp app/build/outputs/apk/release/app-release.apk ../../out/Nudge-Buddy-android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-android
+          path: out/Nudge-Buddy-android.apk
+          if-no-files-found: error
+
   publish:
-    # Runs once, after both builds → exactly one release, so "latest" always has every file.
-    needs: build
+    # Runs once, after all builds → exactly one release, so "latest" always has every file.
+    needs: [build, android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -57,4 +91,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${GITHUB_REF_NAME}"
-          gh release create "$TAG" out/* --repo "$GITHUB_REPOSITORY" --title "Nudge Buddy $TAG" --notes "Download for Mac (Apple silicon or Intel) or Windows." --latest
+          gh release create "$TAG" out/* --repo "$GITHUB_REPOSITORY" --title "Nudge Buddy $TAG" --notes "Download for Mac (Apple silicon or Intel), Windows or Android." --latest

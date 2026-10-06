@@ -7,8 +7,9 @@ android {
         applicationId "com.tartanhq.nudgebuddy"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI passes these from the git tag (v1.2.2 → 10202); local builds fall back to 1 / "dev"
+        versionCode((System.getenv("NB_VERSION_CODE") ?: "1") as int)
+        versionName(System.getenv("NB_VERSION_NAME") ?: "dev")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +17,27 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            // Prefer a private keystore from CI secrets; otherwise use the bundled sideload keystore.
+            def b64 = System.getenv("ANDROID_KEYSTORE_B64")
+            if (b64) {
+                def f = new File(buildDir, "release.jks"); f.parentFile.mkdirs(); f.bytes = b64.decodeBase64()
+                storeFile f
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS") ?: "nudgebuddy"
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD") ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            } else {
+                storeFile file("nudgebuddy-release.jks")
+                storePassword "nudgebuddy"
+                keyAlias "nudgebuddy"
+                keyPassword "nudgebuddy"
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

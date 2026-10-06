@@ -1,7 +1,7 @@
 {
   "name": "nudge-buddy-desktop",
   "productName": "Nudge Buddy",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Playful reminders & alarms delivered by an animated buddy.",
   "author": "Mr.Suryawanshi",
   "main": "main.js",

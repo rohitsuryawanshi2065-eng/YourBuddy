@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nudge Buddy — a tiny coworker that lives on your Dock</title>
-<meta name="description" content="Nudge Buddy lives on your Mac Dock or Windows taskbar, wanders around while you work, and runs across your screen when it's time to drink water, stretch or take a break. Free for Mac & Windows.">
+<meta name="description" content="Nudge Buddy lives on your Mac Dock or Windows taskbar, wanders around while you work, and runs across your screen when it's time to drink water, stretch or take a break. Free for Mac, Windows & Android.">
 <meta property="og:title" content="Nudge Buddy — a tiny coworker that lives on your Dock">
 <meta property="og:description" content="Reminders you can't ignore: an animated buddy that runs across your screen when it's time to hydrate, stretch and breathe.">
 <meta property="og:image" content="/assets/og.png">
@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=1.2.1">
+<link rel="stylesheet" href="/styles.css?v=1.2.2">
 </head>
 <body>
 
@@ -35,14 +35,15 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow"><span class="dot"></span> Free for Mac &amp; Windows</p>
+      <p class="eyebrow"><span class="dot"></span> Free for Mac, Windows &amp; Android</p>
       <h1>Your Dock just got a <span class="squiggle">tiny coworker.</span></h1>
       <p class="lede">Nudge Buddy lives on top of your Dock, wanders around while you work, and <b>sprints across your screen</b> when it’s time to drink water, stretch, or look away. Say <b>YES</b> and it throws a party. Say <b>“later”</b> and it counts down, moonwalks off, and comes back right on time.</p>
       <div class="cta-row">
         <a class="btn btn-primary dl" data-os="mac" href="#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5V15H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 18h20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg> Download for Mac</a>
         <a class="btn btn-ghost dl" data-os="win" href="#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8-1v7.5H3zM13 3.8l8-1.3v9H13zM3 13h8v7.5l-8-1.1zM13 13h8v8.5l-8-1.3z" fill="currentColor"/></svg> Download for Windows</a>
+        <a class="btn btn-ghost dl" data-os="android" href="#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10.5a6 6 0 0 1 12 0V11H6z" fill="currentColor"/><path d="M8.2 5.2 6.9 3.4M15.8 5.2l1.3-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="6" y="12" width="12" height="7.5" rx="1.6" fill="currentColor"/><rect x="3" y="12" width="2.2" height="6" rx="1.1" fill="currentColor"/><rect x="18.8" y="12" width="2.2" height="6" rx="1.1" fill="currentColor"/><circle cx="9.5" cy="8.4" r=".9" fill="#fff"/><circle cx="14.5" cy="8.4" r=".9" fill="#fff"/></svg> Android</a>
       </div>
-      <p class="fine">macOS 11+ · Windows 10+ · No account · Nothing leaves your computer</p>
+      <p class="fine">macOS 11+ · Windows 10+ · Android 7+ · No account · Nothing leaves your computer</p>
     </div>
 
     <div class="hero-stage">
@@ -161,10 +162,14 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8-1v7.5H3zM13 3.8l8-1.3v9H13zM3 13h8v7.5l-8-1.1zM13 13h8v8.5l-8-1.3z" fill="currentColor"/></svg>
         <div><b>Download for Windows</b><small>Windows 10 &amp; 11 · 64-bit · .exe</small></div>
       </a>
+      <a class="dl-card dl" data-os="android" href="#">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10.5a6 6 0 0 1 12 0V11H6z" fill="currentColor"/><path d="M8.2 5.2 6.9 3.4M15.8 5.2l1.3-1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="6" y="12" width="12" height="7.5" rx="1.6" fill="currentColor"/><rect x="3" y="12" width="2.2" height="6" rx="1.1" fill="currentColor"/><rect x="18.8" y="12" width="2.2" height="6" rx="1.1" fill="currentColor"/><circle cx="9.5" cy="8.4" r=".9" fill="#fff"/><circle cx="14.5" cy="8.4" r=".9" fill="#fff"/></svg>
+        <div><b>Download for Android</b><small>Android 7 or newer · .apk</small></div>
+      </a>
     </div>
     <div class="soon">
       <span>🧩 Chrome extension — coming soon</span>
-      <span>📱 iPhone &amp; Android — coming soon</span>
+      <span>🍎 iPhone — coming soon</span>
     </div>
     <p class="fine intel-line">Intel Mac? <a class="dl" data-os="macintel" href="#">Download the Intel version</a></p>
     <div class="setup">
@@ -181,11 +186,22 @@
       <p class="tipline">Updating? Quit the old Nudge Buddy from the menu bar first, then replace it. Your reminders are kept safe.</p>
       <p class="tipline">On Windows: if you see “Windows protected your PC”, click <b>More info → Run anyway</b>.</p>
     </div>
+    <div class="setup setup-android">
+      <h3>📱 Installing on Android — super quick</h3>
+      <ol>
+        <li>Tap <b>Download for Android</b> on your phone, then open the downloaded <b>Nudge-Buddy-android.apk</b>.</li>
+        <li>If your phone asks, tap <b>Settings</b> and turn on <b>Allow from this source</b> (this lets your browser install apps), then go back.</li>
+        <li>Tap <b>Install</b>. If Play Protect says it doesn’t recognise the app, tap <b>More details → Install anyway</b>. It’s simply not on the Play Store yet.</li>
+        <li>Open Nudge Buddy and tap <b>Allow</b> for notifications, so your buddy can nudge you even when the app is closed. 🎉</li>
+      </ol>
+      <p class="tipline">Updating later? Just download and install the new version over the old one. Your reminders stay put.</p>
+    </div>
   </section>
 
   <!-- FAQ -->
   <section id="faq" class="faq">
     <h2>Questions, answered</h2>
+    <details><summary>Is there a phone app?</summary><p>Yes, on Android! Download the APK from this page and follow the quick steps above. On your phone, nudges arrive as notifications with <b>Yes</b> and <b>Remind me later</b> buttons, even when the app is closed. iPhone is coming soon.</p></details>
     <details><summary>Is Nudge Buddy free?</summary><p>Yes. Download it and use every feature, no account required.</p></details>
     <details><summary>Will it slow down my computer?</summary><p>No. It’s a tiny window that only animates one small character. When nobody needs it, your buddy literally takes a nap.</p></details>
     <details><summary>Can it pop up over other apps?</summary><p>Yes, that’s the whole point. It appears over your editor, browser, chat apps and even full-screen windows. It never takes over your keyboard, so it won’t interrupt your typing.</p></details>
@@ -201,12 +217,12 @@
 </footer>
 
 <div class="toast" id="toast"></div>
-<script src="/config.js?v=1.2.1"></script>
+<script src="/config.js?v=1.2.2"></script>
 <script src="/characters.js"></script>
 <script src="/overlay.js"></script>
 <script src="/sounds.js"></script>
 <script src="/cartoonize.js"></script>
 <script>NudgeToon.configure({ base: "/ml/" });</script>
-<script src="/site.js?v=1.2.1"></script>
+<script src="/site.js?v=1.2.2"></script>
 </body>
 </html>
