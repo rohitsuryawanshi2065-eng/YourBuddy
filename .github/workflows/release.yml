@@ -54,7 +54,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
+      - name: Use the runner's preinstalled Android SDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - run: npm ci --no-audit --no-fund
       - name: Copy the shared web app into the Android project
         run: node scripts/sync.js && npx cap sync android
