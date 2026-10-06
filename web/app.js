@@ -174,7 +174,7 @@ function renderBuddies() {
     `<button class="buddy${cur === p.id ? ' on' : ''}" data-id="${p.id}"><div class="stagebox"></div><div class="n">${Chars.esc(p.name)}</div><div class="tg">${Chars.esc(p.tagline)}</div></button>`).join('');
   $$('#presetGrid .buddy').forEach((b) => mountInto(b.querySelector('.stagebox'), { kind: 'preset', id: b.dataset.id }, ''));
   $('#customGrid').innerHTML = S.customChars.map((c) =>
-    `<div class="buddy${cur === 'custom:' + c.id ? ' on' : ''}" data-id="custom:${c.id}" role="button" tabindex="0"><button class="del" title="Delete">✕</button><div class="stagebox"></div><div class="n">${Chars.esc(c.name)}</div><div class="tg">${Chars.esc((Chars.customModes.find((m) => m.id === c.mode) || {}).name || '')}</div></div>`).join('') +
+    `<div class="buddy${cur === 'custom:' + c.id ? ' on' : ''}" data-id="custom:${c.id}" role="button" tabindex="0"><button class="del" title="Delete">✕</button><div class="stagebox"></div><div class="n">${Chars.esc(c.name)}</div><div class="tg">${Chars.esc(c.mode === 'toon' ? (c.look === 'comic' ? 'Comic cartoon' : '3D cartoon' + (c.body === 'girl' ? ' · Girl' : ' · Boy')) : ((Chars.customModes.find((m) => m.id === c.mode) || {}).name || ''))}</div></div>`).join('') +
     `<button class="buddy add" id="addBuddy"><span class="plus">＋</span><span class="n">Upload image</span><span class="tg">photo, pet or PNG</span></button>`;
   $$('#customGrid .buddy[data-id]').forEach((b) => {
     mountInto(b.querySelector('.stagebox'), charSpec(b.dataset.id), '');
@@ -195,7 +195,7 @@ function renderBuddies() {
   add.addEventListener('drop', (e) => { e.preventDefault(); add.classList.remove('drag'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
 }
 const COLORS = ['#4a7cc4', '#e8505b', '#22a06b', '#f59e0b', '#7c4dff', '#2b2140', '#ec4899', '#0ea5e9'];
-let draft = null;
+let draft = null, draftBmp = null;
 $('#file').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; });
 async function handleFile(file) {
   if (!file.type.startsWith('image/')) return toast('Please choose an image');
@@ -207,7 +207,9 @@ async function handleFile(file) {
   const ctx = cv.getContext('2d');
   ctx.drawImage(bmp, 0, 0, cv.width, cv.height);
   const corners = [[0, 0], [cv.width - 1, 0], [0, cv.height - 1], [cv.width - 1, cv.height - 1]].map(([x, y]) => ctx.getImageData(x, y, 1, 1).data[3]);
-  const transparent = corners.some((a) => a < 200);
+  let clear = 0; const sd = ctx.getImageData(0, 0, cv.width, cv.height).data;
+  for (let i = 3; i < sd.length; i += 4 * 7) if (sd[i] < 40) clear++;
+  const transparent = clear / (sd.length / 28) > 0.3;   // a real cut-out PNG (not just rounded corners)
   const photo = transparent ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.88);
   const name = (file.name || 'My buddy').replace(/\.[^.]+$/, '').slice(0, 20);
 
@@ -217,15 +219,17 @@ async function handleFile(file) {
   $('#editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   let toon = null;
   try {
-    toon = await globalThis.NudgeToon.cartoonize(bmp, { onStep: (t) => { const el = $('#toonStep'); if (el) el.textContent = '✨ ' + t; } });
+    toon = await globalThis.NudgeToon.cartoonize(bmp, { style: '3d', onStep: (t) => { const el = $('#toonStep'); if (el) el.textContent = '✨ ' + t; } });
   } catch (e) { toon = null; }
   const base = { id: Math.random().toString(36).slice(2, 10), name, photo, crop: { zoom: 1, x: 0, y: 0 } };
   if (toon && toon.ok) {
-    draft = { ...base, toon: toon.head, dataUrl: toon.head, mode: 'toon', color: toon.shirt, skin: toon.skin, hair: toon.hair, palette: [toon.shirt] };
-    toast('Ta-da! Meet cartoon you 🎨');
+    if (!transparent && toon.facePhoto) base.photo = toon.facePhoto;
+    draft = { ...base, toon: toon.head, dataUrl: toon.head, mode: 'toon', body: 'boy', look: '3d', color: toon.shirt, skin: toon.skin, hair: toon.hair, palette: [toon.shirt] };
+    draftBmp = bmp;
+    toast(toon.guessed ? 'Cartoon made 🎨 — face was hard to spot, use Zoom/Move to frame it' : 'Ta-da! Meet cartoon you 🎨');
   } else {
     draft = { ...base, dataUrl: photo, mode: transparent ? 'cutout' : 'body', color: COLORS[0] };
-    toast(toon && toon.reason === 'noface' ? 'No face found — using the photo instead' : 'Using your photo as-is');
+    toast(toon && toon.reason === 'noface' ? 'Couldn’t find a face — try a clear, front-facing photo' : 'Cartoon maker unavailable — using your photo');
   }
   openEditor();
 }
@@ -242,9 +246,24 @@ function openEditor() {
   }));
   const swatches = [...new Set([...(draft.palette || []), ...COLORS])].slice(0, 9);
   $('#eColor').innerHTML = swatches.map((c) => `<button data-c="${c}" class="${c === draft.color ? 'on' : ''}" style="background:${c}" title="${c === (draft.palette || [])[0] ? 'From your photo' : ''}"></button>`).join('');
-  $$('#eColor button').forEach((b) => b.addEventListener('click', () => { draft.color = b.dataset.c; openEditor(); }));
+  $$('#eColor button').forEach((b) => b.addEventListener('click', () => { draft.color = b.dataset.c; draft.colorTouched = true; openEditor(); }));
+  $('#eToonRow').hidden = draft.mode !== 'toon';
+  $$('#eBody button').forEach((b) => { b.classList.toggle('on', b.dataset.v === (draft.body || 'boy')); b.onclick = () => retoon({ body: b.dataset.v }); });
+  $$('#eLook button').forEach((b) => { b.classList.toggle('on', b.dataset.v === (draft.look || '3d')); b.onclick = () => retoon({ look: b.dataset.v }); });
   drawEditor();
   $('#editor').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+// Boy/Girl changes the outfit (and keeps long hair); 3D/Comic changes the face style
+async function retoon(change) {
+  const next = { body: draft.body || 'boy', look: draft.look || '3d', ...change };
+  const needRedraw = draftBmp && (next.look !== draft.look || (next.body === 'girl') !== (draft.body === 'girl'));
+  Object.assign(draft, next);
+  if (needRedraw) {
+    $('#editorStage').innerHTML = '<div class="toon-loading"><div class="toon-spin"></div><span>✨ Redrawing…</span></div>';
+    const r = await globalThis.NudgeToon.cartoonize(draftBmp, { style: next.look, longHair: next.body === 'girl' });
+    if (r && r.ok) { draft.toon = r.head; draft.dataUrl = r.head; }
+  }
+  openEditor();
 }
 function drawEditor() { mountInto($('#editorStage'), { kind: 'custom', ...draft }, '💧'); }
 ['eZoom', 'eX', 'eY'].forEach((id) => $('#' + id).addEventListener('input', () => {

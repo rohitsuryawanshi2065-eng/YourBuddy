@@ -148,7 +148,7 @@
   }
   const CUSTOM = {
     body: {
-      face: { x: 60, y: 24, w: 80, h: 80, shape: 'circle', fit: 'cover' },
+      face: { x: 50, y: 10, w: 100, h: 100, shape: 'circle', fit: 'cover' },
       svg: (e, color) => {
         const c = color || '#4a7cc4', d = shade(c, -0.12), d2 = shade(c, -0.2);
         return svgWrap(`
@@ -174,19 +174,51 @@
         <g class="nb-arm nb-arm-r" style="--o:172px 120px"><path d="M172 120 Q196 96 188 64" stroke="${c}" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="188" cy="60" r="8" fill="#fff" stroke="${c}" stroke-width="3"/>${prop(e, 190, 36)}</g>`);
       },
     },
-    // Cartoonized head (from NudgeToon) on a body dressed in the colours found in the photo
+    // Cartoonized head (from NudgeToon) on a 3D-style body — boy or girl — dressed in colours from the photo
     toon: {
-      face: { x: 22, y: 0, w: 156, h: 146, shape: 'none', fit: 'contain', align: 'bottom' },
+      face: { x: 50, y: 0, w: 100, h: 98, shape: 'none', fit: 'contain', align: 'bottom' },
       svg: (e, color, o = {}) => {
-        const c = color || '#4a7cc4', d = shade(c, -0.14), skin = o.skin || '#f0c08a', pants = o.pants || '#2f3b52';
-        return svgWrap(`
-        <g class="nb-leg nb-leg-l" style="--o:86px 212px"><path d="M86 212 L84 266" stroke="${pants}" stroke-width="20" stroke-linecap="round"/><ellipse cx="80" cy="276" rx="16" ry="8.5" fill="#fff" stroke="#c9cdd6" stroke-width="2.5"/></g>
-        <g class="nb-leg nb-leg-r" style="--o:114px 212px"><path d="M114 212 L116 266" stroke="${pants}" stroke-width="20" stroke-linecap="round"/><ellipse cx="120" cy="276" rx="16" ry="8.5" fill="#fff" stroke="#c9cdd6" stroke-width="2.5"/></g>
-        <g class="nb-arm nb-arm-l" style="--o:74px 156px"><path d="M74 156 Q60 184 64 206" stroke="${d}" stroke-width="17" fill="none" stroke-linecap="round"/><circle cx="64" cy="212" r="8.5" fill="${skin}"/></g>
-        <rect x="91" y="128" width="18" height="22" rx="5" fill="${shade(skin, -0.08)}"/>
-        <path d="M70 152 Q100 140 130 152 L134 216 Q100 224 66 216Z" fill="${c}"/>
-        <path d="M88 146 Q100 158 112 146" stroke="${d}" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <g class="nb-arm nb-arm-r" style="--o:126px 156px"><path d="M126 156 Q156 176 152 140" stroke="${d}" stroke-width="17" fill="none" stroke-linecap="round"/><circle cx="151" cy="133" r="8.5" fill="${skin}"/>${prop(e, 160, 110)}</g>`);
+        const id = 'g' + Math.random().toString(36).slice(2, 7);
+        const girl = o.body === 'girl';
+        const c = color || (girl ? '#e58fb4' : '#4f7fc2');
+        const hi = shade(c, 0.14), lo = shade(c, -0.18), lo2 = shade(c, -0.3);
+        const skin = o.skin || '#f0c08a', skinLo = shade(skin, -0.12);
+        const tee = girl ? '#fbf7f2' : '#6e737d', teeLo = shade(tee, -0.12);
+        const pants = o.pants || (girl ? '#8fb3dd' : '#2f3542'), pantsHi = shade(pants, 0.1), pantsLo = shade(pants, -0.16);
+        const sh = girl ? 4 : 0;   // girls: slightly narrower shoulders & waist
+        const defs = `<defs>
+          <linearGradient id="${id}j" x1="0" x2="1"><stop offset="0" stop-color="${lo}"/><stop offset=".45" stop-color="${hi}"/><stop offset="1" stop-color="${lo2}"/></linearGradient>
+          <linearGradient id="${id}t" x1="0" x2="1"><stop offset="0" stop-color="${teeLo}"/><stop offset=".5" stop-color="${tee}"/><stop offset="1" stop-color="${teeLo}"/></linearGradient>
+          <linearGradient id="${id}p" x1="0" x2="1"><stop offset="0" stop-color="${pantsLo}"/><stop offset=".5" stop-color="${pantsHi}"/><stop offset="1" stop-color="${pantsLo}"/></linearGradient>
+          <linearGradient id="${id}a" x1="0" x2="1"><stop offset="0" stop-color="${hi}"/><stop offset="1" stop-color="${lo}"/></linearGradient>
+          <radialGradient id="${id}s" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9dde6"/></radialGradient>
+          <radialGradient id="${id}h" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="${skin}"/><stop offset="1" stop-color="${skinLo}"/></radialGradient>
+        </defs>`;
+        const leg = (side, x0, x1, ox) => `<g class="nb-leg nb-leg-${side}" style="--o:${x0}px 182px">
+            <path d="M${x0 - 11} 180 L${x0 + 11} 180 L${x1 + 9} 266 L${x1 - 9} 266 Z" fill="url(#${id}p)"/>
+            <path d="M${x1 - 9} 262 L${x1 + 9} 262" stroke="${pantsLo}" stroke-width="3"/>
+            <path d="M${x1 - 13 + ox} 266 q-4 12 4 14 l24 0 q8 -1 6 -8 q-4 -8 -14 -8 Z" fill="url(#${id}s)" stroke="#b9bfcb" stroke-width="1.5"/>
+            <path d="M${x1 - 12 + ox} 278 l26 0" stroke="#9aa1ae" stroke-width="2.5" stroke-linecap="round"/></g>`;
+        return svgWrap(`${defs}
+        ${leg('l', 88, 84, -6)}
+        ${leg('r', 112, 116, 0)}
+        <path d="M${80 + sh} 172 Q100 ${girl ? 168 : 176} ${120 - sh} 172 L124 186 Q100 192 76 186 Z" fill="${pantsLo}"/>
+        <g class="nb-arm nb-arm-l" style="--o:${72 + sh}px 106px">
+          <path d="M${72 + sh} 106 Q${60 + sh} 136 ${62 + sh} 166" stroke="url(#${id}a)" stroke-width="17" fill="none" stroke-linecap="round"/>
+          <path d="M${57 + sh} 150 l12 3" stroke="${lo2}" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="${62 + sh}" cy="174" rx="7.5" ry="9" fill="url(#${id}h)"/></g>
+        <path d="M${74 + sh} 100 Q100 ${girl ? 94 : 92} ${126 - sh} 100 L${girl ? 122 : 128} 178 Q100 ${girl ? 180 : 184} ${girl ? 78 : 72} 178 Z" fill="url(#${id}t)"/>
+        ${girl ? `<path d="M${76 + sh} 150 Q100 ${158} ${124 - sh} 150" stroke="${teeLo}" stroke-width="2" fill="none" opacity=".6"/>` : ''}
+        <path d="M${72 + sh} 100 Q86 94 94 96 L${girl ? 92 : 96} ${girl ? 168 : 182} Q${82} 184 ${girl ? 74 : 68} 180 Z" fill="url(#${id}j)"/>
+        <path d="M${128 - sh} 100 Q114 94 106 96 L${girl ? 108 : 104} ${girl ? 168 : 182} Q118 184 ${girl ? 126 : 132} 180 Z" fill="url(#${id}j)"/>
+        <path d="M88 94 L96 116 L98 98 Z M112 94 L104 116 L102 98 Z" fill="${lo}"/>
+        ${girl ? '' : `<path d="M76 128 h12 M112 128 h12" stroke="${lo2}" stroke-width="2.5" stroke-linecap="round"/><circle cx="90" cy="150" r="1.8" fill="${lo2}"/><circle cx="110" cy="150" r="1.8" fill="${lo2}"/>`}
+        <path d="M72 168 Q100 176 128 168" stroke="${lo2}" stroke-width="2" fill="none" opacity=".35"/>
+        <rect x="92" y="84" width="16" height="16" rx="5" fill="${skinLo}"/>
+        <g class="nb-arm nb-arm-r" style="--o:${128 - sh}px 106px">
+          <path d="M${128 - sh} 106 Q${156 - sh} 128 ${148 - sh} 92" stroke="url(#${id}a)" stroke-width="17" fill="none" stroke-linecap="round"/>
+          <path d="M${142 - sh} 104 l11 -6" stroke="${lo2}" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="${147 - sh}" cy="84" rx="8" ry="9" fill="url(#${id}h)"/>${prop(e, 152 - sh, 62, 30)}</g>`);
       },
     },
     cutout: {
@@ -260,7 +292,7 @@
     const r = resolve(spec);
     const el = document.createElement('div');
     el.className = 'nb-char' + (r.def.floaty ? ' nb-floaty' : '') + (r.custom ? ' nb-custom nb-mode-' + r.mode : '');
-    const svg = r.custom ? r.def.svg(emoji, spec.color, { skin: spec.skin, pants: spec.pants }) : r.def.svg(emoji);
+    const svg = r.custom ? r.def.svg(emoji, spec.color, { skin: spec.skin, pants: spec.pants, body: spec.body }) : r.def.svg(emoji);
     setHTML(el, `<div class="nb-shadow"></div><div class="nb-inner">${svg}</div>`);
     if (r.custom) {
       const f = r.def.face;
@@ -307,6 +339,18 @@
   .nb-walk .nb-prop,.nb-running .nb-prop{animation:nb-propbob calc(var(--cyc) * .5) ease-in-out infinite}
   .nb-running .nb-leg-l,.nb-running .nb-leg-r{animation-name:nb-runstep}
   .nb-running .nb-arm-l,.nb-running .nb-arm-r{animation-name:nb-runarm}
+  /* movement styles (Settings → Movement) */
+  .nb-style-bounce.nb-walk .nb-inner,.nb-style-bounce.nb-running .nb-inner{animation:nb-hopbob calc(var(--cyc) * .5) cubic-bezier(.3,0,.6,1) infinite}
+  .nb-style-bounce.nb-walk .nb-leg,.nb-style-bounce.nb-running .nb-leg{animation:nb-tuck calc(var(--cyc) * .5) ease-in-out infinite!important}
+  .nb-style-strut.nb-walk .nb-inner{animation:nb-strutbob var(--cyc) ease-in-out infinite}
+  .nb-style-strut.nb-walk .nb-arm-l,.nb-style-strut.nb-walk .nb-arm-r{animation-name:nb-runarm}
+  .nb-style-glide.nb-walk .nb-leg,.nb-style-glide.nb-running .nb-leg{animation:none!important;transform:rotate(-6deg)}
+  .nb-style-glide.nb-walk .nb-inner,.nb-style-glide.nb-running .nb-inner{animation:nb-glide calc(var(--cyc) * 2) ease-in-out infinite}
+  .nb-style-glide.nb-walk .nb-arm-l,.nb-style-glide.nb-walk .nb-arm-r{animation:nb-wave 1.4s ease-in-out infinite}
+  @keyframes nb-hopbob{0%,100%{transform:translateY(0) scale(1.06,.94)}15%{transform:translateY(-4%) scale(.96,1.05)}50%{transform:translateY(-13%) scale(1)}85%{transform:translateY(-3%) scale(.98,1.02)}}
+  @keyframes nb-tuck{0%,100%{transform:rotate(0) scaleY(1)}50%{transform:rotate(-10deg) scaleY(.8)}}
+  @keyframes nb-strutbob{0%,100%{transform:translateY(0) rotate(calc(var(--lean,0deg) - 5deg))}25%,75%{transform:translateY(-3%) rotate(var(--lean,0deg))}50%{transform:translateY(0) rotate(calc(var(--lean,0deg) + 5deg))}}
+  @keyframes nb-glide{0%,100%{transform:translateY(-3%) rotate(calc(var(--lean,0deg) + 4deg))}50%{transform:translateY(-6%) rotate(calc(var(--lean,0deg) + 6deg))}}
   @keyframes nb-step{
     0%{transform:rotate(-22deg) scaleY(1)}
     50%{transform:rotate(20deg) scaleY(1)}

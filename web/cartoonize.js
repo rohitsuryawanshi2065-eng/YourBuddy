@@ -9,6 +9,8 @@
   let base = 'ml/';
   let fdPromise = null, segPromise = null;
 
+  // optional file map (used by the single-file preview, where models are embedded as blob: URLs)
+  const url = (p) => (g.NudgeToonFiles && g.NudgeToonFiles[p]) || base + p;
   const loadScript = (src) => new Promise((res, rej) => {
     const s = document.createElement('script');
     s.src = src; s.async = true; s.onload = res; s.onerror = () => rej(new Error('load ' + src));
@@ -25,20 +27,27 @@
       setTimeout(() => { if (pending === resolve) { pending = null; reject(new Error('timeout')); } }, 20000);
     });
   }
+  let fdModel = 'short';
   function faceDetector() {
     if (!fdPromise) fdPromise = (async () => {
-      if (!g.FaceDetection) await loadScript(base + 'face_detection/face_detection.js');
-      const fd = new g.FaceDetection({ locateFile: (f) => base + 'face_detection/' + f });
-      fd.setOptions({ model: 'short', minDetectionConfidence: 0.45 });
+      if (!g.FaceDetection) await loadScript(url('face_detection/face_detection.js'));
+      const fd = new g.FaceDetection({ locateFile: (f) => url('face_detection/' + f) });
+      fd.setOptions({ model: 'short', minDetectionConfidence: 0.3 });
       await fd.initialize();
-      return makeRunner(fd);
+      const run = makeRunner(fd);
+      // run(image, 'short' | 'full'): switch model lazily (full-range copes with small/far faces)
+      let conf = 0.3;
+      return async (image, model = 'short', c = 0.5) => {
+        if (model !== fdModel || c !== conf) { await fd.setOptions({ model, minDetectionConfidence: c }); fdModel = model; conf = c; }
+        return run(image);
+      };
     })().catch((e) => { fdPromise = null; throw e; });
     return fdPromise;
   }
   function segmenter() {
     if (!segPromise) segPromise = (async () => {
-      if (!g.SelfieSegmentation) await loadScript(base + 'selfie_segmentation/selfie_segmentation.js');
-      const sg = new g.SelfieSegmentation({ locateFile: (f) => base + 'selfie_segmentation/' + f });
+      if (!g.SelfieSegmentation) await loadScript(url('selfie_segmentation/selfie_segmentation.js'));
+      const sg = new g.SelfieSegmentation({ locateFile: (f) => url('selfie_segmentation/' + f) });
       sg.setOptions({ modelSelection: 0 });
       await sg.initialize();
       return makeRunner(sg);
@@ -121,6 +130,29 @@
     return out;
   }
 
+  /* Local magnify ("cartoon eyes"): each eye region is enlarged with a smooth falloff. */
+  function bulge(src, w, h, centers, R, k) {
+    const out = new Float32Array(src);
+    for (const c of centers) {
+      const x0 = Math.max(0, Math.floor(c.x - R)), x1 = Math.min(w - 1, Math.ceil(c.x + R));
+      const y0 = Math.max(0, Math.floor(c.y - R)), y1 = Math.min(h - 1, Math.ceil(c.y + R));
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const dx = x - c.x, dy = y - c.y, d = Math.hypot(dx, dy);
+        if (d >= R) continue;
+        const f = 1 - k * (1 - (d / R) ** 2) ** 2;      // < 1 near the centre → magnified
+        const sx = clamp(c.x + dx * f, 0, w - 1.001), sy = clamp(c.y + dy * f, 0, h - 1.001);
+        const xi = sx | 0, yi = sy | 0, ax = sx - xi, ay = sy - yi;
+        const o = (y * w + x) * 4;
+        for (let ch = 0; ch < 4; ch++) {
+          const a = src[(yi * w + xi) * 4 + ch], b = src[(yi * w + xi + 1) * 4 + ch];
+          const cc = src[((yi + 1) * w + xi) * 4 + ch], dd = src[((yi + 1) * w + xi + 1) * 4 + ch];
+          out[o + ch] = (a * (1 - ax) + b * ax) * (1 - ay) + (cc * (1 - ax) + dd * ax) * ay;
+        }
+      }
+    }
+    return out;
+  }
+
   /* Ink lines from luminance edges (Sobel), thresholded adaptively. */
   function inkEdges(px, w, h) {
     const L = new Float32Array(w * h);
@@ -140,7 +172,7 @@
 
   /* ---------- main ---------- */
   /** @returns {Promise<{ok, head, photo, skin, hair, shirt, reason?}>} */
-  async function cartoonize(source, { onStep } = {}) {
+  async function cartoonize(source, { onStep, style = '3d', longHair = false, forceGuess = false } = {}) {
     const step = (s) => { try { onStep && onStep(s); } catch (e) { /* noop */ } };
     const bmp = source instanceof ImageBitmap ? source : await createImageBitmap(source);
     const sc = Math.min(1, 640 / Math.max(bmp.width, bmp.height));
@@ -150,14 +182,36 @@
     const photo = (() => { const s2 = Math.min(1, 420 / Math.max(W, H)); const c = canvas(Math.round(W * s2), Math.round(H * s2)); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.88); })();
 
     step('Finding your face…');
-    let det;
-    try { det = await (await faceDetector())(img); } catch (e) { return { ok: false, reason: 'model', photo }; }
-    const face = det && det.detections && det.detections[0];
-    if (!face) return { ok: false, reason: 'noface', photo };
-    const bb = face.boundingBox;
-    const fx = bb.xCenter * W, fy = bb.yCenter * H, fw = bb.width * W, fh = bb.height * H;
-    const kp = (face.landmarks || []).map((p) => ({ x: p.x * W, y: p.y * H }));
-
+    // Several attempts: as-is, padded (close-up selfies), full-range model (small/far faces), mirrored.
+    let face = null, why = 'noface';
+    try {
+      const detect = await faceDetector();
+      const pad = (k) => { const c = canvas(Math.round(W * (1 + 2 * k)), Math.round(H * (1 + 2 * k))); const x = c.getContext('2d'); x.fillStyle = '#888'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, W * k, H * k); return c; };
+      const tries = [
+        [img, 'short', null, 0.5], [pad(0.35), 'short', 0.35, 0.5], [img, 'full', null, 0.5], [pad(0.35), 'full', 0.35, 0.5],
+        [img, 'short', null, 0.3], [img, 'full', null, 0.3],
+      ];
+      // a real face has both eyes inside its box, a sensible distance apart
+      const sane = (d) => { const b = d.boundingBox, L = d.landmarks || []; if (L.length < 2) return true;
+        const x0 = b.xCenter - b.width / 2, x1 = b.xCenter + b.width / 2, y0 = b.yCenter - b.height / 2, y1 = b.yCenter + b.height / 2;
+        const inside = [L[0], L[1]].every((p) => p.x > x0 && p.x < x1 && p.y > y0 && p.y < y1);
+        const eyeD = Math.hypot(L[0].x - L[1].x, L[0].y - L[1].y) / b.width;
+        return inside && eyeD > 0.2 && eyeD < 0.65; };
+      for (const [im, model, k, c] of (forceGuess ? [] : tries)) {
+        const r = await detect(im, model, c);
+        const best = (r && r.detections || []).filter(sane).sort((a, b) => b.boundingBox.width - a.boundingBox.width)[0];
+        console.info('[NudgeToon] try', model, k, c, best && JSON.stringify(best.boundingBox));
+        if (!best) continue;
+        if (k) {   // map padded coordinates back to the original image
+          const f = 1 + 2 * k, m = (v) => (v * f - k);
+          const bbx = best.boundingBox;
+          face = { boundingBox: { xCenter: m(bbx.xCenter), yCenter: m(bbx.yCenter), width: bbx.width * f, height: bbx.height * f },
+            landmarks: (best.landmarks || []).map((p) => ({ x: m(p.x), y: m(p.y) })) };
+        } else face = best;
+        break;
+      }
+      if (fdModel !== 'short') detect(img, 'short', 0.5).catch(() => {});
+    } catch (e) { console.warn('[NudgeToon] face model failed', e); why = 'model'; }
     step('Removing the background…');
     let maskPx = null;
     try {
@@ -172,9 +226,40 @@
     } catch (e) { maskPx = null; }
     const person = (x, y) => !maskPx || maskPx[(y | 0) * W + (x | 0)] > 128;
 
+    // No face found → estimate the head from the person silhouette (or the upper-centre of the photo).
+    let guessed = false;
+    if (!face) {
+      guessed = true;
+      let box = null;
+      if (maskPx) {
+        const rowW = (y) => { let a = -1, b = -1; for (let x = 0; x < W; x++) if (maskPx[y * W + x] > 128) { if (a < 0) a = x; b = x; } return a < 0 ? null : [a, b]; };
+        let top = -1; for (let y = 0; y < H; y++) { const r = rowW(y); if (r && r[1] - r[0] > W * 0.04) { top = y; break; } }
+        if (top >= 0 && top < H * 0.7) {
+          // head width ≈ silhouette width a little below the crown
+          const sample = (f) => rowW(Math.min(H - 1, Math.round(top + f)));
+          const guessW = Math.min(W, H) * 0.3;
+          const r1 = sample(guessW * 0.55) || sample(guessW * 0.3);
+          if (r1) { const hw = Math.max(20, Math.min(r1[1] - r1[0], W * 0.7)) * 0.64; box = { xCenter: (r1[0] + r1[1]) / 2 / W, yCenter: (top + hw * 1.08) / H, width: hw / W, height: hw * 1.15 / H }; }
+        }
+      }
+      if (!box) { const hw = Math.min(W, H) * 0.34; box = { xCenter: 0.5, yCenter: (H * 0.12 + hw * 1.15) / H, width: hw / W, height: hw * 1.15 / H }; }
+      face = { boundingBox: box, landmarks: [] };
+      console.info('[NudgeToon] no face detected (' + why + ') — using estimated head box', box);
+    }
+    const bb = face.boundingBox;
+    const fx = bb.xCenter * W, fy = bb.yCenter * H, fw = bb.width * W, fh = bb.height * H;
+    const kp = (face.landmarks || []).map((p) => ({ x: p.x * W, y: p.y * H }));
+    // estimated head → synthesize rough eye/nose/mouth points so the jaw & collar cut still work
+    if (kp.length < 4) kp.splice(0, kp.length, { x: fx - fw * 0.2, y: fy - fh * 0.08 }, { x: fx + fw * 0.2, y: fy - fh * 0.08 }, { x: fx, y: fy + fh * 0.1 }, { x: fx, y: fy + fh * 0.26 });
+
     // Head region: face box widened for hair, cut just under the chin.
-    const hx0 = clamp(fx - fw * 0.95, 0, W - 1), hx1 = clamp(fx + fw * 0.95, 0, W - 1);
-    const hy0 = clamp(fy - fh * 1.25, 0, H - 1), hy1 = clamp(fy + fh * 0.72, 0, H - 1);
+    const hx0 = clamp(fx - fw * (longHair ? 1.15 : 0.95), 0, W - 1), hx1 = clamp(fx + fw * (longHair ? 1.15 : 0.95), 0, W - 1);
+    const hy0 = clamp(fy - fh * 1.25, 0, H - 1), hy1 = clamp(fy + fh * (longHair ? 1.6 : 0.72), 0, H - 1);
+    // hair colour (for keeping long hair that falls below the chin)
+    const px0 = ictx.getImageData(0, 0, W, H).data;
+    const hairRGB = medianColor(px0, W, fx - fw * 0.45, fy - fh * 1.15, fx + fw * 0.45, fy - fh * 0.75, person);
+    const isHair1 = (X, Y) => { if (!hairRGB) return false; const i = ((Y | 0) * W + (X | 0)) * 4; return Math.hypot(px0[i] - hairRGB[0], px0[i + 1] - hairRGB[1], px0[i + 2] - hairRGB[2]) < 42; };
+    const isHair = (X, Y) => { let n = 0; for (const [dx, dy] of [[0, 0], [-4, 0], [4, 0], [0, -4], [0, 4], [-3, -3], [3, 3], [3, -3], [-3, 3]]) if (isHair1(clamp(X + dx, 0, W - 1), clamp(Y + dy, 0, H - 1))) n++; return n >= 7; };
     const ex = fx, ey = fy - fh * 0.2, erx = fw * 0.88, ery = fh * 1.05;   // head ellipse
     const cw = Math.round(hx1 - hx0), ch = Math.round(hy1 - hy0);
     const OUT = 300, s = Math.min(OUT / cw, OUT / ch);
@@ -189,9 +274,11 @@
       const X = hx0 + x / s, Y = hy0 + y / s;
       const e = ((X - ex) / erx) ** 2 + ((Y - ey) / (Y > ey ? ery * 0.92 : ery)) ** 2;   // head ellipse, a bit narrower at the jaw
       let a = e < 0.8 ? 1 : e > 1.0 ? 0 : (1.0 - e) / 0.2;
-      if (Y > chinY) a *= clamp(1 - (Y - chinY) / (fh * 0.06), 0, 1);
+      const keepHair = longHair && Y > kp[3]?.y && Y < chinY + fh * 0.85 && Math.abs(X - fx) > fw * 0.42 && Math.abs(X - fx) < fw * 1.05 && person(clamp(X, 0, W - 1), clamp(Y, 0, H - 1)) && isHair(clamp(X, 0, W - 1), clamp(Y, 0, H - 1));
+      if (longHair) { const e2 = ((X - ex) / (erx * 1.25)) ** 2 + ((Y - (ey + fh * 0.35)) / (ery * 1.45)) ** 2; if (keepHair) a = e2 < 1 ? 1 : 0; }
+      if (Y > chinY && !keepHair) a *= clamp(1 - (Y - chinY) / (fh * 0.06), 0, 1);
       // jawline: below the mouth the head tapers toward the chin, so collars/shoulders drop out
-      if (kp.length >= 4 && Y > kp[3].y) {
+      if (!keepHair && kp.length >= 4 && Y > kp[3].y) {
         const t = clamp((Y - kp[3].y) / Math.max(1, chinY - kp[3].y), 0, 1);
         const half = fw * (0.5 - 0.2 * t);
         a *= clamp(1 - (Math.abs(X - kp[3].x) - half) / (fw * 0.05), 0, 1);
@@ -213,20 +300,45 @@
 
     step('Drawing your cartoon…');
     await new Promise((r) => setTimeout(r, 0));
-    let sm = bilateral(src, ow, oh, 4, 30);
-    sm = bilateral(sm, ow, oh, 4, 24);
-    sm = bilateral(sm, ow, oh, 2, 18);
-    const q = quantize(sm, ow, oh, 9);
-    const { mag, t } = inkEdges(sm, ow, oh);
     const out = cctx.createImageData(ow, oh); const od = out.data;
-    for (let i = 0; i < ow * oh; i++) {
-      const p = i * 4;
-      let c = saturate([q[p], q[p + 1], q[p + 2]], 1.18);
-      c = c.map((v) => clamp((v - 128) * 1.06 + 136, 0, 255));         // a touch brighter, more contrast
-      const edge = mag[i] > t ? clamp((mag[i] - t) / t, 0, 1) : 0;
-      const k = 1 - edge * 0.72;
-      od[p] = c[0] * k + 43 * (1 - k); od[p + 1] = c[1] * k + 33 * (1 - k); od[p + 2] = c[2] * k + 64 * (1 - k);
-      od[p + 3] = src[p + 3];
+    if (style === 'comic') {
+      let sm = bilateral(src, ow, oh, 4, 30);
+      sm = bilateral(sm, ow, oh, 4, 24);
+      sm = bilateral(sm, ow, oh, 2, 18);
+      const q = quantize(sm, ow, oh, 9);
+      const { mag, t } = inkEdges(sm, ow, oh);
+      for (let i = 0; i < ow * oh; i++) {
+        const p = i * 4;
+        let c = saturate([q[p], q[p + 1], q[p + 2]], 1.18);
+        c = c.map((v) => clamp((v - 128) * 1.06 + 136, 0, 255));
+        const edge = mag[i] > t ? clamp((mag[i] - t) / t, 0, 1) : 0;
+        const k = 1 - edge * 0.72;
+        od[p] = c[0] * k + 43 * (1 - k); od[p + 1] = c[1] * k + 33 * (1 - k); od[p + 2] = c[2] * k + 64 * (1 - k);
+        od[p + 3] = src[p + 3];
+      }
+    } else {
+      // "3D cartoon": bigger eyes, airbrushed skin, soft studio light, no ink lines
+      const eyes = kp.length >= 2 && !guessed ? [kp[0], kp[1]].map((e) => ({ x: (e.x - hx0) * s, y: (e.y - hy0) * s })) : [];
+      const R = fw * s * 0.2;
+      let w0 = eyes.length ? bulge(src, ow, oh, eyes, R, 0.42) : src;
+      let sm = bilateral(w0, ow, oh, 5, 34);
+      sm = bilateral(sm, ow, oh, 5, 30);
+      sm = bilateral(sm, ow, oh, 3, 20);
+      // keep a little fine detail (eyes, brows, lips) from the warped original
+      const fcx = (fx - hx0) * s, fcy = (fy - hy0) * s, frx = fw * s * 0.62, fry = fh * s * 0.75;
+      for (let y = 0; y < oh; y++) for (let x = 0; x < ow; x++) {
+        const i = y * ow + x, p = i * 4;
+        const detail = eyes.some((e) => Math.hypot(x - e.x, y - e.y) < R * 1.1) ? 0.55 : 0.12;
+        let c = [0, 1, 2].map((k) => sm[p + k] * (1 - detail) + w0[p + k] * detail);
+        // soft key light from top-left, gentle falloff toward the edges → rounded, "rendered" look
+        const lx = (x - fcx) / frx, ly = (y - fcy) / fry;
+        const light = 1.02 - 0.12 * (lx * 0.6 + ly * 0.8) - 0.14 * Math.min(1, lx * lx + ly * ly);
+        c = c.map((v) => v * light);
+        c = saturate(c, 1.22);
+        c = [c[0] * 1.03 + 3, c[1] * 1.0 + 1, c[2] * 0.96];             // warm, glowy skin
+        c = c.map((v) => clamp((v - 128) * 1.14 + 126, 0, 255));
+        od[p] = c[0]; od[p + 1] = c[1]; od[p + 2] = c[2]; od[p + 3] = src[p + 3];
+      }
     }
     // Trim to the visible head and add a cartoon outline (dark ink + soft white rim)
     let minX = ow, minY = oh, maxX = 0, maxY = 0;
@@ -239,7 +351,9 @@
     const sil = canvas(tw, th); const sctx = sil.getContext('2d');
     sctx.drawImage(layer, minX - pad, minY - pad, tw, th, 0, 0, tw, th);
     sctx.globalCompositeOperation = 'source-in'; sctx.fillStyle = '#2b2140'; sctx.fillRect(0, 0, tw, th);
-    for (let a = 0; a < 16; a++) { const r = 3.2; hctx.drawImage(sil, Math.cos(a / 16 * 6.283) * r, Math.sin(a / 16 * 6.283) * r); }
+    const ring = style === 'comic' ? 3.2 : 1.4; if (style !== 'comic') hctx.globalAlpha = 0.55;
+    for (let a = 0; a < 16; a++) hctx.drawImage(sil, Math.cos(a / 16 * 6.283) * ring, Math.sin(a / 16 * 6.283) * ring);
+    hctx.globalAlpha = 1;
     hctx.drawImage(layer, minX - pad, minY - pad, tw, th, 0, 0, tw, th);
 
     // Outfit colours sampled from the photo
@@ -256,6 +370,12 @@
     const tone = (c, fallback) => (c ? hex(...saturate(c, 1.15)) : fallback);
     return {
       ok: true,
+      guessed,
+      facePhoto: (() => {   // square photo crop around the head, for the "Head on body" / "Sticker" styles
+        const side = Math.min(Math.max(fw, fh) * 2.2, W, H), cx = clamp(fx, side / 2, W - side / 2), cy = clamp(fy - fh * 0.12, side / 2, H - side / 2);
+        const c = canvas(320, 320); c.getContext('2d').drawImage(img, cx - side / 2, cy - side / 2, side, side, 0, 0, 320, 320);
+        return c.toDataURL('image/jpeg', 0.9);
+      })(),
       head: head.toDataURL('image/png'),
       photo,
       skin: tone(skin, '#f0c08a'),

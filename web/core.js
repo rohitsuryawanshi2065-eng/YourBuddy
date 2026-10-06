@@ -73,7 +73,7 @@ export function pause(minutes) {
 export function charSpec(id) {
   if (id && id.startsWith('custom:')) {
     const c = state.customChars.find((x) => x.id === id.slice(7));
-    if (c) return { kind: 'custom', dataUrl: c.dataUrl, mode: c.mode, color: c.color, crop: c.crop, skin: c.skin };
+    if (c) return { kind: 'custom', dataUrl: c.dataUrl, mode: c.mode, color: c.color, crop: c.crop, skin: c.skin, body: c.body };
   }
   return { kind: 'preset', id: id && !id.startsWith('custom:') ? id : 'arjun' };
 }

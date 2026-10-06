@@ -3,20 +3,25 @@
 const { app, BrowserWindow, Tray, Menu, ipcMain, Notification, nativeImage, shell, screen, protocol, net } = require('electron');
 const { pathToFileURL } = require('url');
 const path = require('path');
+const fs = require('fs');
 
 // Serve the UI from app://bundle/ instead of file:// so fetch()/WebAssembly (face model) work.
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
 const WWW = path.join(__dirname, 'www');
 const MIME = { '.wasm': 'application/wasm', '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json', '.tflite': 'application/octet-stream', '.binarypb': 'application/octet-stream', '.data': 'application/octet-stream' };
 function registerAppProtocol() {
+  // Read with fs (asar-aware) so it works inside the packaged app too, not only in development.
   protocol.handle('app', async (req) => {
     const rel = decodeURIComponent(new URL(req.url).pathname).replace(/^\/+/, '');
     const file = path.normalize(path.join(WWW, rel));
     if (!file.startsWith(WWW)) return new Response('forbidden', { status: 403 });
-    const res = await net.fetch(pathToFileURL(file).toString());
-    const type = MIME[path.extname(file).toLowerCase()];
-    if (!type || !res.ok) return res;
-    return new Response(res.body, { status: res.status, headers: { 'content-type': type } });
+    try {
+      const buf = await fs.promises.readFile(file);
+      const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+      return new Response(buf, { status: 200, headers: { 'content-type': type } });
+    } catch (e) {
+      return new Response('not found', { status: 404 });
+    }
   });
 }
 
@@ -28,9 +33,14 @@ let win = null, pet = null, tray = null, quitting = false, lastStatus = null;
 const isMac = process.platform === 'darwin';
 const asset = (f) => path.join(__dirname, 'build', f);
 
+function bigWindow() {
+  const wa = screen.getPrimaryDisplay().workArea;
+  const width = Math.min(1180, Math.round(wa.width * 0.85)), height = Math.min(860, Math.round(wa.height * 0.9));
+  return { width, height, x: wa.x + Math.round((wa.width - width) / 2), y: wa.y + Math.round((wa.height - height) / 2) };
+}
 function createWindow() {
   win = new BrowserWindow({
-    width: 480, height: 820, minWidth: 380, minHeight: 560,
+    ...bigWindow(), minWidth: 420, minHeight: 600,
     title: 'Nudge Buddy', backgroundColor: '#fbf8ff', show: false,
     icon: asset('icon.png'),
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
