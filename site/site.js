@@ -15,7 +15,7 @@
   /* ---------------- downloads + OS detection ---------------- */
   const cfg = window.NB_CONFIG || {};
   const gh = (f) => `https://github.com/${cfg.repo}/releases/latest/download/${f}`;
-  const urls = { mac: cfg.macUrl || gh(cfg.macFile), win: cfg.winUrl || gh(cfg.winFile) };
+  const urls = { mac: cfg.macUrl || gh(cfg.macFile), macintel: gh(cfg.macIntelFile || 'Nudge-Buddy-mac-x64.dmg'), win: cfg.winUrl || gh(cfg.winFile) };
   const os = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? 'mac' : /Win/.test(navigator.platform || navigator.userAgent) ? 'win' : null;
   const notConfigured = !cfg.repo || cfg.repo.startsWith('YOUR-');
   $$('.dl').forEach((a) => {
@@ -25,7 +25,7 @@
     if (k === os) a.classList.add('recommended');
     a.addEventListener('click', (e) => {
       if (notConfigured) { e.preventDefault(); toast('Downloads go live after the first release ✨'); return; }
-      toast(k === 'mac' ? '⬇️ Downloading for Mac… see you on the Dock!' : '⬇️ Downloading for Windows… see you on the taskbar!');
+      toast(k === 'mac' || k === 'macintel' ? '⬇️ Downloading for Mac… see you on the Dock!' : '⬇️ Downloading for Windows… see you on the taskbar!');
     });
   });
   // Put the visitor's OS first in the hero
