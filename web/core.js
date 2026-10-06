@@ -19,6 +19,8 @@ function load() {
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || '{}');
     state.settings = { ...DEFAULT_SETTINGS, ...(d.settings || {}), quiet: { ...DEFAULT_SETTINGS.quiet, ...((d.settings || {}).quiet || {}) } };
+    // v1.2: simple, transparent "run left → right" is the new default
+    if (!state.settings.v12) Object.assign(state.settings, { entrance: 'run', celebration: 'runoff', v12: true });
     state.reminders = d.reminders || [];
     state.customChars = d.customChars || [];
     state.stats = { ...state.stats, ...(d.stats || {}) };

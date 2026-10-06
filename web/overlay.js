@@ -22,17 +22,16 @@
   *{box-sizing:border-box}
   .stage{position:fixed;inset:0;pointer-events:none;overflow:hidden;font-family:ui-rounded,"SF Pro Rounded","Nunito","Segoe UI Rounded",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#2b2140;-webkit-font-smoothing:antialiased}
   .veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(20,10,40,.28),rgba(20,10,40,0) 60%);opacity:0;transition:opacity .6s}
-  .stage.on .veil{opacity:1}
-  .standalone .veil{opacity:1;background:radial-gradient(circle at 50% 30%,#fff6d6,#ffd9a8 45%,#ffb38a 100%)}
-  .veil.disco{opacity:.42!important;background:conic-gradient(from 0deg,#ff3d6e,#ffb800,#3ddc84,#2bb3ff,#9b5cff,#ff3d6e);animation:disco 1.2s linear infinite;mix-blend-mode:screen}
+  .veil{background:none}
+  .veil.disco{opacity:.42!important;background:none;background:conic-gradient(from 0deg,#ff3d6e,#ffb800,#3ddc84,#2bb3ff,#9b5cff,#ff3d6e);animation:disco 1.2s linear infinite;mix-blend-mode:screen}
   @keyframes disco{to{filter:hue-rotate(360deg)}}
   canvas.confetti{position:absolute;inset:0;width:100%;height:100%}
   .actor{position:absolute;left:0;top:0;will-change:transform}
   .charbox{position:absolute;inset:0;pointer-events:auto;cursor:pointer}
   .flip{position:absolute;inset:0;transition:transform .18s}
   .flip.left{transform:scaleX(-1)}
-  .panel{position:absolute;bottom:calc(100% - 6px);left:50%;transform:translateX(-50%);width:max-content;max-width:min(560px,94vw);text-align:center;pointer-events:none}
-  .headline{font-weight:900;line-height:1.05;letter-spacing:-.01em;color:#ffd84d;-webkit-text-stroke:2px #e2391d;paint-order:stroke fill;text-shadow:0 4px 0 #9d1d0c,0 0 22px rgba(255,140,0,.55);margin-bottom:12px}
+  .panel{position:absolute;bottom:calc(100% - 4px);left:50%;transform:translateX(-50%);width:max-content;max-width:min(380px,94vw);text-align:center;pointer-events:none}
+  .headline{font-weight:900;line-height:1.05;letter-spacing:-.01em;color:#ffd84d;-webkit-text-stroke:1.5px #e2391d;paint-order:stroke fill;text-shadow:0 2px 0 #9d1d0c,0 0 12px rgba(255,140,0,.45);margin-bottom:8px}
   .headline .l1{font-size:var(--fs1)}
   .headline .l2{font-size:var(--fs2)}
   .w{display:inline-block;opacity:0;transform:translateY(18px) scale(.6) rotate(-6deg)}
@@ -41,23 +40,22 @@
   .btns,.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;opacity:0;transform:translateY(10px);transition:opacity .3s .35s,transform .35s .35s cubic-bezier(.2,1.6,.4,1)}
   .panel.show .btns,.panel.show .chips{opacity:1;transform:none}
   .chips[hidden],.btns[hidden]{display:none}
-  button{pointer-events:auto;font:inherit;border:0;cursor:pointer;border-radius:12px;padding:10px 18px;font-size:15px;font-weight:800;background:#fff;color:#4a4458;box-shadow:0 4px 0 rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.18);transition:transform .15s cubic-bezier(.2,1.6,.4,1),box-shadow .15s,background .15s}
+  button{pointer-events:auto;font:inherit;border:0;cursor:pointer;border-radius:10px;padding:7px 13px;font-size:13px;font-weight:800;background:#fff;color:#4a4458;box-shadow:0 4px 0 rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.18);transition:transform .15s cubic-bezier(.2,1.6,.4,1),box-shadow .15s,background .15s}
   button:hover{transform:translateY(-2px) scale(1.04)}
   button:active{transform:translateY(2px) scale(.98);box-shadow:0 1px 0 rgba(0,0,0,.18)}
   button:focus-visible{outline:3px solid #7c4dff;outline-offset:2px}
-  .yes{background:linear-gradient(180deg,#5ef08f,#22c55e);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.2);padding:10px 26px;font-size:16px;letter-spacing:.04em}
+  .yes{background:linear-gradient(180deg,#5ef08f,#22c55e);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.2);padding:7px 18px;font-size:14px;letter-spacing:.04em}
   .later{transition:transform .32s cubic-bezier(.2,1.6,.4,1)}
-  .chip{padding:8px 14px;font-size:14px}
+  .chip{padding:6px 10px;font-size:12px}
   .chip.def{background:#fff4c2;color:#7a4a00}
   .chip.back{background:#efeaf7}
   .tip{margin-top:8px;font-size:11px;font-weight:700;color:rgba(255,255,255,.92);text-shadow:0 1px 2px rgba(0,0,0,.5);opacity:0;transition:opacity .4s 1s}
-  .standalone .tip{color:#7a4a32;text-shadow:none}
   .panel.show .tip{opacity:.9}
   @media (hover:none){.tip{display:none}}
   .quip{position:absolute;left:62%;top:4%;background:#fff;color:#2b2140;font-weight:800;font-size:14px;padding:8px 12px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.2);white-space:nowrap;opacity:0;transform:scale(.4) translateY(10px);transform-origin:0% 100%;transition:opacity .2s,transform .3s cubic-bezier(.2,1.8,.4,1);pointer-events:none;z-index:2}
   .quip:after{content:"";position:absolute;left:10px;bottom:-7px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
   .quip.on{opacity:1;transform:none}
-  .count{position:absolute;font-weight:900;font-size:120px;color:#fff;-webkit-text-stroke:4px #7c4dff;paint-order:stroke fill;text-shadow:0 8px 0 #4b25b8,0 0 40px rgba(124,77,255,.6);pointer-events:none;transform:translate(-50%,-50%);opacity:0}
+  .count{position:absolute;font-weight:900;font-size:64px;color:#fff;-webkit-text-stroke:4px #7c4dff;paint-order:stroke fill;text-shadow:0 8px 0 #4b25b8,0 0 40px rgba(124,77,255,.6);pointer-events:none;transform:translate(-50%,-50%);opacity:0}
   .toast{position:absolute;left:50%;top:22px;transform:translate(-50%,-120%);background:#2b2140;color:#fff;font-weight:800;font-size:15px;padding:10px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .45s cubic-bezier(.2,1.6,.4,1);white-space:nowrap}
   .toast.on{transform:translate(-50%,0)}
   .puff{position:absolute;border-radius:50%;background:#fff;pointer-events:none;opacity:.95}
@@ -164,10 +162,10 @@
     host.style.cssText = 'all:initial!important;position:fixed!important;inset:0!important;z-index:2147483647!important;pointer-events:none!important;display:block!important;';
     const root = host.attachShadow({ mode: 'closed' });
     const W = innerWidth, H = innerHeight;
-    const charH = Math.round(Math.max(150, Math.min(300, H * (p.standalone || p.scene ? 0.46 : 0.4))));
+    const charH = Math.round(Math.max(110, Math.min(160, H * 0.2)));   // small by default
     const charW = Math.round(charH * 2 / 3);
-    const fs1 = Math.round(Math.max(20, Math.min(34, W / 26)));
-    const fs2 = Math.round(Math.max(22, Math.min(40, W / 22)));
+    const fs1 = Math.round(Math.max(15, Math.min(20, W / 50)));
+    const fs2 = Math.round(Math.max(17, Math.min(24, W / 42)));
 
     const headline1 = p.headline || 'Hey you!';
     const message = p.message || 'Time for a quick break!';
@@ -233,7 +231,7 @@
     const { W, H, charW, charH } = S;
     const pw = Math.min(S.panel.offsetWidth || 360, W - 24);
     const half = Math.max(charW / 2, pw / 2) + 12;
-    let cx = S.p.standalone || S.p.scene ? W / 2 : W / 2 + rand(-W * .18, W * .18);
+    let cx = W / 2;
     cx = Math.max(half, Math.min(W - half, cx));
     S.restX = Math.round(cx - charW / 2);
     S.restY = Math.round(H - charH - (S.p.standalone || S.p.scene ? 18 : 14) - (S.p.bottomInset || 0));
@@ -245,7 +243,8 @@
     const { restX, restY, charW, charH, W, H } = S;
     let mode = S.settings.entrance;
     if (S.p.chase || typeof S.p.fromX === 'number') mode = 'run';
-    if (!mode || mode === 'random') mode = pick(['run', 'run', 'drop', 'peek']);
+    if (!mode) mode = 'run';
+    if (mode === 'random') mode = pick(['run', 'run', 'drop', 'peek']);
     if (reduced) mode = 'fade';
 
     if (mode === 'fade') {
@@ -286,7 +285,7 @@
       await wait(380);
     } else { // run
       const hasFrom = typeof S.p.fromX === 'number';
-      const fromLeft = hasFrom ? S.p.fromX < restX : S.p.chase ? Math.random() < .5 : Math.random() < .55;
+      const fromLeft = hasFrom ? S.p.fromX < restX : S.settings.entrance === 'random' ? Math.random() < .55 : true;   // default: always left → right
       S.x = hasFrom ? S.p.fromX : fromLeft ? -charW - 60 : W + 60; S.y = restY;
       face(fromLeft ? 1 : -1); lean(fromLeft ? 8 : 8);
       setChar('nb-running', 'nb-fast');
@@ -363,14 +362,14 @@
     hidePanelBits();
     setHeadline(S.p.celebrate || 'Legend! 🎉', pick(['You absolute star ✨', 'That’s the spirit!', 'Proud of you 💪', 'Main character energy!']));
     const r = S.actor.getBoundingClientRect();
-    confetti(r.left + r.width / 2, r.top + r.height * .35, 170, 1.1);
+    confetti(r.left + r.width / 2, r.top + r.height * .35, 70, .7);
     const res = await send({ type: 'nb:answer', reminderId: S.p.reminderId, action: 'yes', preview: !!S.p.preview });
     if (!S) return;
     if (res && res.streak) toast(`🔥 ${res.streak}-day streak · ✅ ${res.today} today`);
     await wait(700);
     if (!S) return;
-    let c = S.settings.celebration;
-    if (!c || c === 'random') c = pick(['zoomies', 'rocket', 'clones', 'disco']);
+    let c = S.settings.celebration || 'runoff';
+    if (c === 'random') c = pick(['zoomies', 'rocket', 'clones', 'disco']);
     if (reduced) c = 'calm';
     try { await CELEBRATIONS[c](); } catch (e) { /* ignore */ }
     finish();
@@ -378,6 +377,13 @@
 
   const CELEBRATIONS = {
     async calm() { await wait(1600); },
+    async runoff() {   // simple: hop, then keep running off to the right
+      anim(S.panel, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: 500 });
+      setChar('nb-dance'); await wait(700);
+      if (!S) return;
+      setChar('nb-running', 'nb-fast'); face(1); lean(8);
+      await moveTo(S.W + S.charW + 40, S.y, Math.max(900, (S.W - S.x) * 1.2), 'cubic-bezier(.4,0,.8,1)');
+    },
     async zoomies() {
       const { W, charW, charH } = S, y = S.restY;
       anim(S.panel, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, delay: 500 });
@@ -482,9 +488,8 @@
     if (!S) return;
     const { charW, charH } = S;
     // moonwalk backwards while a big 3-2-1 counts down
-    const dir = S.x + charW / 2 > S.W / 2 ? 1 : -1; // drift toward nearer edge
-    face(-dir); lean(-4); setChar('nb-walk');
-    S.char.querySelectorAll('.nb-leg,.nb-arm').forEach((n) => (n.style.animationDirection = 'alternate-reverse'));
+    const dir = 1; // keep heading right
+    face(1); lean(2); setChar('nb-walk');
     moveTo(S.x + dir * Math.min(220, S.W * .2), S.y, 2100, 'linear');
     for (const n of [3, 2, 1]) {
       if (!S) return;
@@ -497,12 +502,12 @@
       await wait(700);
     }
     if (!S) return;
-    const r = S.actor.getBoundingClientRect();
-    puffs(r.left + r.width / 2, r.top + r.height * .55, 14, charW * .45, charW * .6);
-    sfx('poof');
+    S.anims.forEach((a) => { try { a.commitStyles(); } catch (e) { /* noop */ } a.cancel(); }); S.anims = [];
     anim(S.panel, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
-    await anim(S.flip, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.15,.2)', opacity: .6, offset: .4 }, { transform: 'scale(0)', opacity: 0 }], { duration: 320, easing: 'ease-in' });
-    await wait(500);
+    setChar('nb-running', 'nb-fast'); lean(8);
+    const m = new DOMMatrix(getComputedStyle(S.actor).transform); S.x = m.m41;
+    await moveTo(S.W + charW + 40, S.y, Math.max(700, (S.W - S.x) * 1.1), 'cubic-bezier(.4,0,.8,1)');
+    await wait(200);
     finish();
   }
 

@@ -9,8 +9,8 @@ export const DEFAULT_SETTINGS = {
   mischief: true,                // "Remind me later" dodges the cursor (twice)
   escalate: true,                // buddy gets impatient if ignored
   chase: true,                   // follows you when you switch tabs
-  entrance: 'random',            // random | run | drop | peek
-  celebration: 'random',         // random | zoomies | rocket | clones | disco
+  entrance: 'run',               // run (left → right) | random | drop | peek
+  celebration: 'runoff',        // runoff (keeps running right) | random | zoomies | rocket | clones | disco
   snoozeOptions: [2, 5, 10, 15, 30, 60],
   defaultSnooze: 10,
   away: 'window',                // when Chrome isn't focused: window | notification | both | wait
